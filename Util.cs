@@ -83,7 +83,7 @@ namespace WebsiteProxy
 			}
 		}
 
-		public static void Write(object value)
+		public static void Write(object? value)
 		{
 			Debug.Write(value);
 #if DEBUG
@@ -91,7 +91,7 @@ namespace WebsiteProxy
 #endif
 		}
 
-		public static void WriteLine(object value)
+		public static void WriteLine(object? value)
 		{
 			Write("\r\n");
 			Write(value);
@@ -123,14 +123,14 @@ namespace WebsiteProxy
 			}
 		}
 
-		public static void WriteHttpStatus(HttpListenerContext context)
+		public static void WriteHttpStatus(ResponseHeaders responseHeaders)
 		{
-			SetStatusColor(context.Response.StatusCode >= 100 && context.Response.StatusCode < 400);
-			WriteMany(context.Response.StatusCode, context.Response.StatusDescription);
-			if (context.Response.RedirectLocation != null)
+			SetStatusColor(responseHeaders.code >= 100 && responseHeaders.code < 400);
+			WriteMany(responseHeaders.code, responseHeaders.message);
+			if (responseHeaders.headers.ContainsKey("Redirect-Location"))
 			{
 				color = ConsoleColor.Magenta;
-				WriteMany("->", context.Response.RedirectLocation);
+				WriteMany("->", responseHeaders.headers["Redirect-Location"]);
 			}
 		}
 	}

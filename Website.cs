@@ -2,6 +2,7 @@
 using Scriban.Parsing;
 using Scriban.Runtime;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Web;
@@ -12,47 +13,65 @@ namespace WebsiteProxy
 	{
 		public static Route[] routes =
 		{
-			
+			new Route("test", new string[] { "GET" }, (clientSocket, requestHeaders, responseHeaders) =>
+			{
+				clientSocket.SendBody(";)", responseHeaders);
+			})
 		};
 
-		public static async void HandleConnection(this HttpListenerContext context)
+		public static async void HandleConnection(Socket clientSocket, RequestHeaders requestHeaders)
 		{
 			MyConsole.WriteTimestamp();
-			MyConsole.WriteMany(context.Request.RemoteEndPoint, "Connection:");
-			MyConsole.color = ConsoleColor.DarkYellow;
-			MyConsole.WriteMany(context.Request.HttpMethod, context.Request.Url);
-			context.Response.ContentEncoding = Encoding.UTF8;
+			MyConsole.WriteMany(clientSocket.RemoteEndPoint);
 
-			if (context.Request.Url == null)
+			MyConsole.color = ConsoleColor.DarkYellow;
+			MyConsole.WriteMany(requestHeaders.method, requestHeaders.url);
+
+			// Writes the raw request headers.
+			/*if (requestHeaders.raw != null)
 			{
-				context.Send(400, "Bad Request", "No requested URL was specified.");
+				MyConsole.color = ConsoleColor.DarkGray;
+				MyConsole.WriteLine(Encoding.ASCII.GetString(requestHeaders.raw));
+			}*/
+
+			if (requestHeaders.url == null)
+			{
+				clientSocket.SendResponse(400, "No requested URL was specified.");
+				return;
+			}
+			if (requestHeaders.method == null)
+			{
+				clientSocket.SendResponse(400, "No requested method was specified.");
 				return;
 			}
 
 			// The preferred path to be used.
-			string shortPath = context.Request.Url.LocalPath.Trim('/').Replace(".html", null).Replace("index", null, true, null);
+			string shortPath = requestHeaders.url.Trim('/').Replace(".html", null).Replace("index", null, true, null);
 
 			// Checks if the url path matches a pre-defined path.
-			string basePath = shortPath.Split('/', 2)[0];
+			string basePath = shortPath.Split('/', 2)[0].ToLower();
 			foreach (Route route in routes)
 			{
 				if (route.name == basePath)
 				{
 					foreach (string method in route.methods)
 					{
-						if (method == context.Request.HttpMethod.ToUpper())
+						if (requestHeaders.method.ToUpper() == method)
 						{
-							context.SetPreferredRedirect(shortPath.TrimEnd('/') + "/");
-							route.Action(context);
+							ResponseHeaders responseHeaders = new ResponseHeaders();
+							responseHeaders.SetPreferredRedirect(requestHeaders.url, "/" + shortPath.TrimEnd('/') + "/");
+							route.Action(clientSocket, requestHeaders, responseHeaders);
 							return;
 						}
 					}
-					context.Send(405, "Method Not Allowed", "The route \"" + context.Request.Url.LocalPath + "\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.");
+					clientSocket.SendResponse(405, "The route \"/" + basePath + "\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.");
 					return;
 				}
 			}
 
-			string convertedPath = shortPath.Replace('/', '\\'); // The url path as a relative windows file path.
+			clientSocket.SendResponse(404, "The requested file \"" + shortPath + "\" could not be found.");
+
+			/*string convertedPath = shortPath.Replace('/', '\\'); // The url path as a relative windows file path.
 
 			// Checks if the url path matches an asset file name.
 			if (File.Exists(Path.Combine(Util.currentDirectory, "assets\\", convertedPath)))
@@ -82,19 +101,8 @@ namespace WebsiteProxy
 					return;
 				}
 			}
-			context.Send(404, "Not Found", "The requested file \"" + shortPath + "\" could not be found.");
-			//context.Send(418, "I'm a teapot", "And I can't be asked to brew coffee.");
-		}
-
-		public static void SetPreferredRedirect(this HttpListenerContext context, string shortPath)
-		{
-			string path = "/" + shortPath.TrimStart('/');
-			if (context.Request.Url != null && path != context.Request.Url.LocalPath)
-			{
-				context.Response.StatusCode = 300;
-				context.Response.StatusDescription = "Multiple Choices";
-				context.Response.RedirectLocation = path;
-			}
+			
+			//context.Send(418, "I'm a teapot", "And I can't be asked to brew coffee.");*/
 		}
 
 		public static string? ReadParameter(this HttpListenerContext context, string name)
@@ -191,7 +199,7 @@ namespace WebsiteProxy
 				return;
 			}
 
-			MyConsole.WriteHttpStatus(context);
+			//MyConsole.WriteHttpStatus(context);
 			context.Response.Close();
 		}
 
@@ -263,7 +271,7 @@ namespace WebsiteProxy
 			context.Response.ContentType = type;
 
 			context.Response.OutputStream.Write(bytes);
-			MyConsole.WriteHttpStatus(context);
+			//MyConsole.WriteHttpStatus(context);
 			context.Response.Close();
 		}
 
@@ -273,7 +281,7 @@ namespace WebsiteProxy
 			context.Response.StatusDescription = message;
 			context.Response.RedirectLocation = location;
 
-			MyConsole.WriteHttpStatus(context);
+			//MyConsole.WriteHttpStatus(context);
 			context.Response.Close();
 		}
 
@@ -281,9 +289,9 @@ namespace WebsiteProxy
 		{
 			public string name;
 			public string[] methods;
-			public Action<HttpListenerContext> Action;
+			public Action<Socket, RequestHeaders, ResponseHeaders> Action;
 
-			public Route(string routeName, string[] routeMethods, Action<HttpListenerContext> RouteAction)
+			public Route(string routeName, string[] routeMethods, Action<Socket, RequestHeaders, ResponseHeaders> RouteAction)
 			{
 				name = routeName;
 				methods = routeMethods;

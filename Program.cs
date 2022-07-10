@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Sockets;
 
 namespace WebsiteProxy
 {
@@ -9,16 +10,15 @@ namespace WebsiteProxy
 			// Certificate setup: https://stackoverflow.com/a/33905011
 			// Note to self: Certbot makes certificates, openssl combines certificate and key to .pfx file,
 			// wich is loaded in with Windows MMC, and then bound to app with netsh http add sslcert. Phew!
-			HttpListener listener = new HttpListener();
-			listener.Prefixes.Add("https://+:443/");
-			listener.Start();
-			listener.Listen();
-		}
 
-		public static void Listen(this HttpListener listener)
-		{
+			IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+			IPEndPoint endPoint = new IPEndPoint(ipAddress, 80);
+
+			Socket socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+			socket.Bind(endPoint);
+
 			Console.ForegroundColor = ConsoleColor.White;
-			Console.Write("Server running...");
+			Console.Write("Server running on {0}...", ipAddress);
 
 #if DEBUG
 			Console.ForegroundColor = ConsoleColor.Green;
@@ -32,14 +32,17 @@ namespace WebsiteProxy
 			Console.Write("Run in debug mode for logging.");
 #endif
 			Console.ForegroundColor = ConsoleColor.White;
+
+			socket.Listen(10); // Starts listening on port with a max queue of 10.
 			while (true)
 			{
-				
-				HttpListenerContext context = listener.GetContext();
+
+				Socket clientSocket = socket.Accept();
+				RequestHeaders requestHeaders = RequestHeaders.ReadFromSocket(clientSocket);
 #if DEBUG
-				context.HandleConnection(); // Handles connection synchronously.
+				Website.HandleConnection(clientSocket, requestHeaders); // Handles connection synchronously.
 #else
-				Task.Run(() => context.HandleConnection()); // Handles connection asynchronously.
+				Task.Run(() => Website.HandleConnection(clientSocket, requestHeaders)); // Handles connection asynchronously.
 #endif
 			}
 		}

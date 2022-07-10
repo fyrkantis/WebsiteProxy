@@ -1,0 +1,162 @@
+﻿using System.Net.Sockets;
+using System.Text;
+
+namespace WebsiteProxy
+{
+	public class Headers
+	{
+		public static Dictionary<int, string> messages = new Dictionary<int, string>()
+		{
+			{ 200, "OK" }, { 204, "No Content" },
+			{ 400, "Bad Request" }, { 404, "Not Found" }, { 405, "Method Not Allowed" },
+			{ 300, "Multiple Choices" }, { 301, "Moved Permanently" }, { 302, "Found"},
+			{ 500, "Internal Server Error" }, { 504, "Gateway Timeout"}
+		};
+
+		public string? protocol;
+		// https://stackoverflow.com/a/13230450
+		public Dictionary<string, object> headers = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+		public static byte[] ReadSocketToNewline(Socket socket)
+		{
+			int bufferSize = 1;
+			byte[] bytesBuffer = new byte[bufferSize];
+			List<byte> bytesList = new List<byte>();
+
+			while (true)
+			{
+				int bufferLength = socket.Receive(bytesBuffer, bufferSize, SocketFlags.None);
+				bytesList.AddRange(bytesBuffer);
+				string buffer = Encoding.ASCII.GetString(bytesBuffer);
+				if (bufferLength <= 0 || buffer[0] == '\n')
+				{
+					return bytesList.ToArray();
+				}
+			}
+		}
+	}
+
+	public class ResponseHeaders : Headers
+	{
+		public int code;
+		public string message
+		{
+			get
+			{
+				if (messages.ContainsKey(code))
+				{
+					return messages[code];
+				}
+				else if (code >= 100 && code < 200)
+				{
+					return "Unknown Information";
+				}
+				else if (code >= 200 && code < 300)
+				{
+					return "Unknown Success";
+				}
+				else if (code >= 300 && code < 400)
+				{
+					return "Unknown Redirect";
+				}
+				else if (code >= 400 && code < 500)
+				{
+					return "Unknown Client Error";
+				}
+				else if (code >= 500 && code < 600)
+				{
+					return "Unknown Server Error";
+				}
+				return "Unknown Error";
+			}
+		}
+
+		public ResponseHeaders(int headerCode = 200, Dictionary<string, string>? headerFields = null)
+		{
+			protocol = "HTTP/1.0";
+			code = headerCode;
+			if (headerFields != null)
+			{
+				foreach (KeyValuePair<string, string> headerField in headerFields)
+				{
+					headers.Add(headerField.Key, headerField.Value);
+				}
+			}
+		}
+
+		public void SetPreferredRedirect(string currentUrl, string preferredUrl)
+		{
+			if (currentUrl != preferredUrl)
+			{
+				code = 300;
+				headers.Add("Location", preferredUrl);
+			}
+		}
+
+		public string GetString()
+		{
+			string str = protocol + " " + code + " " + message;
+			foreach (KeyValuePair<string, object> header in headers)
+			{
+				str += "\r\n" + header.Key + ": " + header.Value.ToString();
+			}
+			str += "\r\n\r\n";
+			return str;
+		}
+
+		public byte[] GetBytes()
+		{
+			return Encoding.ASCII.GetBytes(GetString());
+		}
+	}
+
+	public class RequestHeaders : Headers
+	{
+		public string? method;
+		public string? url;
+		public byte[]? raw;
+
+		public static RequestHeaders ReadFromSocket(Socket socket)
+		{
+			RequestHeaders requestHeaders = new RequestHeaders();
+			List<byte> bytesList = new List<byte>();
+			while (true)
+			{
+				byte[] bytes = ReadSocketToNewline(socket);
+				bytesList.AddRange(bytes);
+				string header = Encoding.ASCII.GetString(bytes);
+				if (string.IsNullOrWhiteSpace(header))
+				{
+					break;
+				}
+
+				string[] headerParts = header.Split(':', 2);
+				if (headerParts.Length >= 1 && !string.IsNullOrWhiteSpace(headerParts[0]))
+				{
+					if (headerParts.Length >= 2 && !string.IsNullOrWhiteSpace(headerParts[1])) // Sets normal header row.
+					{
+						requestHeaders.headers.Add(headerParts[0].Trim().ToLower(), headerParts[1].Trim());
+					}
+					else
+					{
+						headerParts = header.Split(" ", 3);
+						if (headerParts.Length >= 1 && !string.IsNullOrWhiteSpace(headerParts[0])) // Sets first header row (method, route and protocol).
+						{
+							requestHeaders.method = headerParts[0];
+							if (headerParts.Length >= 2 && !string.IsNullOrWhiteSpace(headerParts[1]))
+							{
+								requestHeaders.url = headerParts[1];
+								if (headerParts.Length >= 3 && !string.IsNullOrWhiteSpace(headerParts[2]))
+								{
+									requestHeaders.protocol = headerParts[2];
+								}
+							}
+						}
+					}
+				}
+			}
+			requestHeaders.raw = bytesList.ToArray();
+			return requestHeaders;
+		}
+	}
+}
