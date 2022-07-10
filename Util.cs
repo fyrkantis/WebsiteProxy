@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Net;
-using System.Text.Json;
 using System.Globalization;
 
 namespace WebsiteProxy
@@ -127,10 +125,11 @@ namespace WebsiteProxy
 		{
 			SetStatusColor(responseHeaders.code >= 100 && responseHeaders.code < 400);
 			WriteMany(responseHeaders.code, responseHeaders.message);
-			if (responseHeaders.headers.ContainsKey("Redirect-Location"))
+
+			if (responseHeaders.headers.ContainsKey("Location"))
 			{
 				color = ConsoleColor.Magenta;
-				WriteMany("->", responseHeaders.headers["Redirect-Location"]);
+				WriteMany("->", responseHeaders.headers["Location"]);
 			}
 		}
 	}

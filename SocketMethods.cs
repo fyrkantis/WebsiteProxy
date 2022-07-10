@@ -18,7 +18,7 @@ namespace WebsiteProxy
 			}
 		}
 
-		public static void SendBody(this Socket socket, string body, ResponseHeaders? responseHeadersDefault = null)
+		public static void SendFileResponse(this Socket socket, string path, ResponseHeaders? responseHeadersDefault = null)
 		{
 			ResponseHeaders responseHeaders;
 			if (responseHeadersDefault != null)
@@ -29,7 +29,34 @@ namespace WebsiteProxy
 			{
 				responseHeaders = new ResponseHeaders();
 			}
+
+			responseHeaders.SetHashFile(path);
+
+			FileInfo fileInfo = new FileInfo(path);
+			responseHeaders.headers.Add("Content-Disposition", "inline; filename=\"" + fileInfo.Name + "\"");
+			responseHeaders.headers.Add("Content-Type", MimeTypes.GetMimeType(fileInfo.Extension) + "; charset=utf-8");
+			responseHeaders.headers.Add("Content-Length", fileInfo.Length);
+
+			MyConsole.WriteHttpStatus(responseHeaders);
+			socket.Send(responseHeaders.GetBytes());
+			socket.SendFile(path);
+			socket.Close();
+		}
+
+		public static void SendBodyResponse(this Socket socket, string body, ResponseHeaders? responseHeadersDefault = null)
+		{
+			ResponseHeaders responseHeaders;
+			if (responseHeadersDefault != null)
+			{
+				responseHeaders = responseHeadersDefault;
+			}
+			else
+			{
+				responseHeaders = new ResponseHeaders();
+			}
+
 			byte[] bytes = Encoding.UTF8.GetBytes(body);
+			responseHeaders.SetHash(bytes);
 			responseHeaders.headers.Add("Content-Type", "text/html; charset=utf-8");
 			responseHeaders.headers.Add("Content-Length", bytes.Length);
 
@@ -38,19 +65,19 @@ namespace WebsiteProxy
 			socket.Send(bytes);
 			socket.Close();
 		}
-		public static void SendHeaders(this Socket socket, ResponseHeaders responseHeaders)
+		public static void SendResponse(this Socket socket, int code, string? additionalInfo = null, Dictionary<string, object>? headerFields = null)
 		{
+			ResponseHeaders responseHeaders = new ResponseHeaders(code, headerFields);
 			MyConsole.WriteHttpStatus(responseHeaders);
 			socket.Send(responseHeaders.GetBytes());
 			socket.Close();
 		}
-		public static void SendResponse(this Socket socket, int code, string? additionalInfo = null)
-		{
-			socket.SendHeaders(new ResponseHeaders(code));
-		}
 		public static void SendRedirect(this Socket socket, int code, string path)
 		{
-			socket.SendHeaders(new ResponseHeaders(code, new Dictionary<string, string>() { { "Location", path } }));
+			ResponseHeaders responseHeaders = new ResponseHeaders(code, new Dictionary<string, object>() { { "Location", path } });
+			MyConsole.WriteHttpStatus(responseHeaders);
+			socket.Send(responseHeaders.GetBytes());
+			socket.Close();
 		}
 	}
 }

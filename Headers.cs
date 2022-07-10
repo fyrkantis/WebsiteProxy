@@ -1,4 +1,6 @@
 ﻿using System.Net.Sockets;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace WebsiteProxy
@@ -71,16 +73,41 @@ namespace WebsiteProxy
 			}
 		}
 
-		public ResponseHeaders(int headerCode = 200, Dictionary<string, string>? headerFields = null)
+		public ResponseHeaders(int headerCode = 200, Dictionary<string, object>? headerFields = null)
 		{
 			protocol = "HTTP/1.0";
 			code = headerCode;
+			headers.Add("Server", "Dave's Fantastic Server (" + RuntimeInformation.RuntimeIdentifier + ")");
 			if (headerFields != null)
 			{
-				foreach (KeyValuePair<string, string> headerField in headerFields)
+				foreach (KeyValuePair<string, object> headerField in headerFields)
 				{
 					headers.Add(headerField.Key, headerField.Value);
 				}
+			}
+		}
+
+		// Used for setting the MD5 checksum header field (may be unnecessary).
+		// https://stackoverflow.com/a/24031467
+		public void SetHash(string body)
+		{
+			SetHash(Encoding.ASCII.GetBytes(body));
+		}
+		public void SetHash(byte[] bytes)
+		{
+			using (MD5 md5 = MD5.Create())
+			{
+				headers.Add("Content-MD5", Convert.ToHexString(md5.ComputeHash(bytes)));
+			}
+			
+		}
+		// https://stackoverflow.com/a/10520086
+		public void SetHashFile(string path)
+		{
+			using (MD5 md5 = MD5.Create())
+			using (FileStream stream = File.OpenRead(path))
+			{
+				headers.Add("Content-MD5", Convert.ToHexString(md5.ComputeHash(stream)));
 			}
 		}
 
@@ -96,11 +123,18 @@ namespace WebsiteProxy
 		public string GetString()
 		{
 			string str = protocol + " " + code + " " + message;
-			foreach (KeyValuePair<string, object> header in headers)
+			Dictionary<string, object> allHeaders = new Dictionary<string, object>(headers)
+			{
+				{ "Date", DateTime.UtcNow.ToString("r") }
+			};
+			foreach (KeyValuePair<string, object> header in allHeaders)
 			{
 				str += "\r\n" + header.Key + ": " + header.Value.ToString();
 			}
 			str += "\r\n\r\n";
+			//Writes the raw response header.
+			/*MyConsole.color = ConsoleColor.DarkGray;
+			MyConsole.WriteLine(str);/**/
 			return str;
 		}
 
