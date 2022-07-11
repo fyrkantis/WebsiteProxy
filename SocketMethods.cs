@@ -18,18 +18,12 @@ namespace WebsiteProxy
 			}
 		}
 
-		public static void SendFileResponse(this Socket socket, string path, ResponseHeaders? responseHeadersDefault = null)
+		public static void SendFileResponse(this Socket socket, string path)
 		{
-			ResponseHeaders responseHeaders;
-			if (responseHeadersDefault != null)
-			{
-				responseHeaders = responseHeadersDefault;
-			}
-			else
-			{
-				responseHeaders = new ResponseHeaders();
-			}
-
+			socket.SendFileResponse(path, new ResponseHeaders());
+		}
+		public static void SendFileResponse(this Socket socket, string path, ResponseHeaders responseHeaders)
+		{
 			responseHeaders.SetHashFile(path);
 
 			FileInfo fileInfo = new FileInfo(path);
@@ -43,18 +37,22 @@ namespace WebsiteProxy
 			socket.Close();
 		}
 
-		public static void SendBodyResponse(this Socket socket, string body, ResponseHeaders? responseHeadersDefault = null)
+		public static void SendPageResponse(this Socket socket, string path, Dictionary<string, object>? parameters = null)
 		{
-			ResponseHeaders responseHeaders;
-			if (responseHeadersDefault != null)
-			{
-				responseHeaders = responseHeadersDefault;
-			}
-			else
-			{
-				responseHeaders = new ResponseHeaders();
-			}
+			socket.SendPageResponse(path, new ResponseHeaders(), parameters);
+		}
+		public static void SendPageResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Dictionary<string, object>? parameters = null)
+		{
+			responseHeaders.headers.Add("Content-Disposition", "inline; filename = \"" + Path.GetFileName(path) + "\"");
+			socket.SendBodyResponse(TemplateLoader.Render(path, parameters), responseHeaders);
+		}
 
+		public static void SendBodyResponse(this Socket socket, string body)
+		{
+			socket.SendBodyResponse(body, new ResponseHeaders());
+		}
+		public static void SendBodyResponse(this Socket socket, string body, ResponseHeaders responseHeaders)
+		{
 			byte[] bytes = Encoding.UTF8.GetBytes(body);
 			responseHeaders.SetHash(bytes);
 			responseHeaders.headers.Add("Content-Type", "text/html; charset=utf-8");
@@ -65,6 +63,7 @@ namespace WebsiteProxy
 			socket.Send(bytes);
 			socket.Close();
 		}
+
 		public static void SendResponse(this Socket socket, int code, string? additionalInfo = null, Dictionary<string, object>? headerFields = null)
 		{
 			ResponseHeaders responseHeaders = new ResponseHeaders(code, headerFields);

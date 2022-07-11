@@ -7,7 +7,7 @@ namespace WebsiteProxy
 	{
 		public static string currentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
-		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");// "yyyy-MM-dd HH:mm:ss.fff"
+		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");
 		public static TextInfo textInfo = cultureInfo.TextInfo;
 
 		public static string GrammaticalListing(IEnumerable<object> collection, bool quotes = false)
@@ -98,7 +98,7 @@ namespace WebsiteProxy
 		public static void WriteTimestamp()
 		{
 			color = ConsoleColor.White;
-			WriteLine(DateTime.UtcNow.ToString(Util.cultureInfo.DateTimeFormat.SortableDateTimePattern));
+			WriteLine(DateTime.UtcNow.ToString(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff")));
 			color = ConsoleColor.Blue;
 		}
 

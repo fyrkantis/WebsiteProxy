@@ -1,23 +1,30 @@
-﻿using Scriban;
-using Scriban.Parsing;
-using Scriban.Runtime;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Text.Json;
-using System.Web;
+﻿using System.Net.Sockets;
 
 namespace WebsiteProxy
 {
 	public static class Website
 	{
-		public static Route[] routes =
+		static Route[] routes =
 		{
 			new Route("test", new string[] { "GET" }, (clientSocket, requestHeaders, responseHeaders) =>
 			{
 				clientSocket.SendBodyResponse(";)", responseHeaders);
 			})
 		};
+
+		class Route
+		{
+			public string name;
+			public string[] methods;
+			public Action<Socket, RequestHeaders, ResponseHeaders> Action;
+
+			public Route(string routeName, string[] routeMethods, Action<Socket, RequestHeaders, ResponseHeaders> RouteAction)
+			{
+				name = routeName;
+				methods = routeMethods;
+				Action = RouteAction;
+			}
+		}
 
 		public static async void HandleConnection(Socket clientSocket, RequestHeaders requestHeaders)
 		{
@@ -46,7 +53,7 @@ namespace WebsiteProxy
 			}
 
 			// The preferred path to be used.
-			string shortPath = requestHeaders.url.Trim('/').Replace(".html", null).Replace("index", null, true, null);
+			string shortPath = requestHeaders.url.Replace(".html", null, true, null).Replace("index", null, true, null).Trim('/');
 
 			// Checks if the url path matches a pre-defined path.
 			string basePath = shortPath.Split('/', 2)[0].ToLower();
@@ -59,7 +66,7 @@ namespace WebsiteProxy
 						if (requestHeaders.method.ToUpper() == method)
 						{
 							ResponseHeaders responseHeaders = new ResponseHeaders();
-							responseHeaders.SetPreferredRedirect(requestHeaders.url, "/" + shortPath.TrimEnd('/') + "/");
+							responseHeaders.SetPreferredRedirect(requestHeaders.url, ("/" + shortPath).TrimEnd('/') + "/");
 							route.Action(clientSocket, requestHeaders, responseHeaders);
 							return;
 						}
@@ -84,79 +91,26 @@ namespace WebsiteProxy
 				return;
 			}
 
-			clientSocket.SendResponse(404, "The requested file \"" + shortPath + "\" could not be found.");/*
-
 			// Checks if the url path matches a html file name.
-			foreach (string pathAlternative in new string[] { convertedPath + ".html", Path.Combine(convertedPath, "index.html") })
+			foreach (string pathAlternative in new string[] { shortPath + ".html", Path.Combine(shortPath, "index.html") })
 			{
-				if (File.Exists(Path.Combine(Util.currentDirectory, "pages\\", pathAlternative)))
+				string pagePath = Path.Combine(Util.currentDirectory, "pages\\", pathAlternative);
+				if (File.Exists(pagePath))
 				{
-					if (context.Request.HttpMethod.ToUpper() != "GET")
+					if (requestHeaders.method.ToUpper() != "GET")
 					{
-						context.Send(405, "Method Not Allowed", "The page at \"" + context.Request.Url.LocalPath + "\" is static and can only be loaded with GET requests.");
+						clientSocket.SendResponse(405, "The page at \"" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } });
 						return;
 					}
-					context.SetPreferredRedirect(shortPath + "/");
-					context.SendHtmlFile("pages\\" + pathAlternative);
+					ResponseHeaders responseHeaders = new ResponseHeaders();
+					responseHeaders.SetPreferredRedirect(requestHeaders.url, ("/" + shortPath).TrimEnd('/') + "/");
+					clientSocket.SendPageResponse(pagePath, responseHeaders);
 					return;
 				}
 			}
 
 			clientSocket.SendResponse(404, "The requested file \"" + shortPath + "\" could not be found.");
-			//context.Send(418, "I'm a teapot", "And I can't be asked to brew coffee.");*/
-		}
-
-		/*public static void SendHtmlFile(this HttpListenerContext context, string relativePath, Dictionary<string, object>? parameters = null) // TODO: Add error handling for scriban syntax errors.
-		{
-			string absolutePath = Path.Combine(Util.currentDirectory, relativePath);
-			context.Response.AddHeader("Content-Disposition", "inline; filename = \"" + Path.GetFileName(absolutePath) + "\"");
-
-			ScriptObject script = new ScriptObject(); // Used for sending arguments to html template.
-			if (parameters != null)
-			{
-				foreach (KeyValuePair<string, object> parameter in parameters)
-				{
-					script.Add(parameter.Key, parameter.Value);
-				}
-			}
-			TemplateContext templateContext = new TemplateContext();
-			templateContext.TemplateLoader = new MyTemplateLoader();
-			templateContext.PushGlobal(script);
-
-			Template template = Template.Parse(File.ReadAllText(absolutePath, Encoding.UTF8));
-			context.SendBody(template.Render(templateContext));
-			context.Response.Close();
-		}*/
-
-		public class Route
-		{
-			public string name;
-			public string[] methods;
-			public Action<Socket, RequestHeaders, ResponseHeaders> Action;
-
-			public Route(string routeName, string[] routeMethods, Action<Socket, RequestHeaders, ResponseHeaders> RouteAction)
-			{
-				name = routeName;
-				methods = routeMethods;
-				Action = RouteAction;
-			}
-		}
-		public class MyTemplateLoader : ITemplateLoader
-		{
-			public string GetPath(TemplateContext context, SourceSpan callerSpan, string templateName) // TODO: Adapt for relative paths.
-			{
-				return Path.Combine(Util.currentDirectory, templateName.Replace('/', '\\').TrimStart('\\'));
-			}
-
-			public string Load(TemplateContext context, SourceSpan callerSpan, string templatePath)
-			{
-				return File.ReadAllText(templatePath, Encoding.UTF8);
-			}
-
-			public ValueTask<string> LoadAsync(TemplateContext context, SourceSpan callerSpan, string templatePath)
-			{
-				throw new NotImplementedException();
-			}
+			//context.Send(418, "I'm a teapot", "And I can't be asked to brew coffee.");
 		}
 	}
 }
