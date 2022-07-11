@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.Net;
+using System.Net.Sockets;
 
 namespace WebsiteProxy
 {
@@ -29,7 +30,15 @@ namespace WebsiteProxy
 		public static async void HandleConnection(Socket clientSocket, RequestHeaders requestHeaders)
 		{
 			MyConsole.WriteTimestamp();
-			MyConsole.WriteMany(clientSocket.RemoteEndPoint);
+			IPEndPoint? endPoint = clientSocket.RemoteEndPoint as IPEndPoint;
+			if (endPoint != null)
+			{
+				MyConsole.WriteMany(endPoint.Address);
+			}
+			else
+			{
+				MyConsole.WriteMany("\"" + clientSocket.RemoteEndPoint + "\"");
+			}
 
 			MyConsole.color = ConsoleColor.DarkYellow;
 			MyConsole.WriteMany(requestHeaders.method, requestHeaders.url);

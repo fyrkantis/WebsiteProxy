@@ -77,7 +77,9 @@ namespace WebsiteProxy
 		{
 			protocol = "HTTP/1.0";
 			code = headerCode;
+			headers.Add("Content-Language", "en");
 			headers.Add("Server", "Dave's Fantastic Server (" + RuntimeInformation.RuntimeIdentifier + ")");
+
 			if (headerFields != null)
 			{
 				foreach (KeyValuePair<string, object> headerField in headerFields)
@@ -125,6 +127,7 @@ namespace WebsiteProxy
 			string str = protocol + " " + code + " " + message;
 			Dictionary<string, object> allHeaders = new Dictionary<string, object>(headers)
 			{
+				{ "Status", code + " " + message },
 				{ "Date", DateTime.UtcNow.ToString("r") }
 			};
 			foreach (KeyValuePair<string, object> header in allHeaders)

@@ -11,14 +11,14 @@ namespace WebsiteProxy
 			// Note to self: Certbot makes certificates, openssl combines certificate and key to .pfx file,
 			// wich is loaded in with Windows MMC, and then bound to app with netsh http add sslcert. Phew!
 
-			IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
-			IPEndPoint endPoint = new IPEndPoint(ipAddress, 80);
+			//IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+			IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 80);
 
-			Socket socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+			Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			socket.Bind(endPoint);
 
 			Console.ForegroundColor = ConsoleColor.White;
-			Console.Write("Server running on {0}...", ipAddress);
+			Console.Write("Server running...");
 
 #if DEBUG
 			Console.ForegroundColor = ConsoleColor.Green;
