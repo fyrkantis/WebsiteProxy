@@ -29,17 +29,7 @@ namespace WebsiteProxy
 
 		public static async void HandleConnection(Socket clientSocket, RequestHeaders requestHeaders)
 		{
-			MyConsole.WriteTimestamp();
-			IPEndPoint? endPoint = clientSocket.RemoteEndPoint as IPEndPoint;
-			if (endPoint != null)
-			{
-				MyConsole.WriteMany(endPoint.Address);
-			}
-			else
-			{
-				MyConsole.WriteMany("\"" + clientSocket.RemoteEndPoint + "\"");
-			}
-
+			MyConsole.WriteTimestamp(clientSocket.RemoteEndPoint);
 			MyConsole.color = ConsoleColor.DarkYellow;
 			MyConsole.WriteMany(requestHeaders.method, requestHeaders.url);
 

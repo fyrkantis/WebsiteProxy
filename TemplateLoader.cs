@@ -5,7 +5,7 @@ using System.Text;
 
 namespace WebsiteProxy
 {
-	public class TemplateLoader
+	public static class TemplateLoader
 	{
 		public static string Render(string path, Dictionary<string, object>? parameters)
 		{

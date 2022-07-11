@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.Net.Security;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -15,13 +16,13 @@ namespace WebsiteProxy
 			{ 500, "Internal Server Error" }, { 504, "Gateway Timeout"}
 		};
 
+		const int bufferSize = 1;
 		public string? protocol;
 		// https://stackoverflow.com/a/13230450
 		public Dictionary<string, object> headers = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
 		public static byte[] ReadSocketToNewline(Socket socket)
 		{
-			int bufferSize = 1;
 			byte[] bytesBuffer = new byte[bufferSize];
 			List<byte> bytesList = new List<byte>();
 
@@ -30,6 +31,25 @@ namespace WebsiteProxy
 				int bufferLength = socket.Receive(bytesBuffer, bufferSize, SocketFlags.None);
 				bytesList.AddRange(bytesBuffer);
 				string buffer = Encoding.ASCII.GetString(bytesBuffer);
+				//MyConsole.Write(buffer);
+				if (bufferLength <= 0 || buffer[0] == '\n')
+				{
+					return bytesList.ToArray();
+				}
+			}
+		}
+
+		public static byte[] ReadStreamToNewline(Stream stream)
+		{
+			byte[] bytesBuffer = new byte[bufferSize];
+			List<byte> bytesList = new List<byte>();
+
+			while (true)
+			{
+				int bufferLength = stream.Read(bytesBuffer, 0, bufferSize);
+				bytesList.AddRange(bytesBuffer);
+				string buffer = Encoding.ASCII.GetString(bytesBuffer);
+				MyConsole.Write(buffer);
 				if (bufferLength <= 0 || buffer[0] == '\n')
 				{
 					return bytesList.ToArray();
@@ -153,12 +173,23 @@ namespace WebsiteProxy
 		public string? url;
 		public byte[]? raw;
 
-		public static RequestHeaders ReadFromSocket(Socket socket)
+		public static RequestHeaders? ReadFromSocket(Socket socket)
 		{
+			/*SslStream sslStream = Authenticator.GetSslStream(socket);
+			if (!sslStream.CanRead)
+			{
+				MyConsole.WriteTimestamp(socket.RemoteEndPoint);
+				MyConsole.color = ConsoleColor.Red;
+				MyConsole.Write(" Authentication failed.");
+				return null;
+			}*/
+			//MyConsole.color = ConsoleColor.DarkGray;
+			//MyConsole.WriteLine();
 			RequestHeaders requestHeaders = new RequestHeaders();
 			List<byte> bytesList = new List<byte>();
 			while (true)
 			{
+				//byte[] bytes = ReadStreamToNewline(sslStream);
 				byte[] bytes = ReadSocketToNewline(socket);
 				bytesList.AddRange(bytes);
 				string header = Encoding.ASCII.GetString(bytes);

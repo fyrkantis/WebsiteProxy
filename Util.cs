@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 
 namespace WebsiteProxy
 {
@@ -89,17 +90,30 @@ namespace WebsiteProxy
 #endif
 		}
 
-		public static void WriteLine(object? value)
+		public static void WriteLine(object? value = null)
 		{
 			Write("\r\n");
 			Write(value);
 		}
 
-		public static void WriteTimestamp()
+		public static void WriteTimestamp(EndPoint? endPoint = null)
 		{
 			color = ConsoleColor.White;
 			WriteLine(DateTime.UtcNow.ToString(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff")));
 			color = ConsoleColor.Blue;
+			if (endPoint != null)
+			{
+				Write(" ");
+				IPEndPoint? ipEndPoint = endPoint as IPEndPoint;
+				if (ipEndPoint != null)
+				{
+					Write(ipEndPoint.Address);
+				}
+				else
+				{
+					Write("\"" + endPoint + "\"");
+				}
+			}
 		}
 
 		public static void WriteData(string name, object data)

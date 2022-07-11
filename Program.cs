@@ -11,7 +11,6 @@ namespace WebsiteProxy
 			// Note to self: Certbot makes certificates, openssl combines certificate and key to .pfx file,
 			// wich is loaded in with Windows MMC, and then bound to app with netsh http add sslcert. Phew!
 
-			//IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
 			IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 80);
 
 			Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -38,12 +37,15 @@ namespace WebsiteProxy
 			{
 
 				Socket clientSocket = socket.Accept();
-				RequestHeaders requestHeaders = RequestHeaders.ReadFromSocket(clientSocket);
+				RequestHeaders? requestHeaders = RequestHeaders.ReadFromSocket(clientSocket);
+				if (requestHeaders != null)
+				{
 #if DEBUG
-				Website.HandleConnection(clientSocket, requestHeaders); // Handles connection synchronously.
+					Website.HandleConnection(clientSocket, requestHeaders); // Handles connection synchronously.
 #else
-				Task.Run(() => Website.HandleConnection(clientSocket, requestHeaders)); // Handles connection asynchronously.
+					Task.Run(() => Website.HandleConnection(clientSocket, requestHeaders)); // Handles connection asynchronously.
 #endif
+				}
 			}
 		}
 	}
