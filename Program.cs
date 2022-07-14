@@ -11,7 +11,7 @@ namespace WebsiteProxy
 			// Note to self: Certbot makes certificates, openssl combines certificate and key to .pfx file,
 			// wich is loaded in with Windows MMC, and then bound to app with netsh http add sslcert. Phew!
 
-			IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 80);
+			IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 443);
 
 			Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			socket.Bind(endPoint);

@@ -11,6 +11,24 @@ namespace WebsiteProxy
 		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");
 		public static TextInfo textInfo = cultureInfo.TextInfo;
 
+		public static Dictionary<string, string> environment;
+		
+		static Util()
+		{
+			environment = new Dictionary<string, string>();
+			foreach(string line in File.ReadAllLines(Path.Combine(currentDirectory, ".env")))
+			{
+				if (line.Contains('='))
+				{
+					string[] parts = line.Split('=', 2);
+					if (parts.Length >= 2)
+					{
+						environment.Add(parts[0], parts[1]);
+					}
+				}
+			}
+		}
+
 		public static string GrammaticalListing(IEnumerable<object> collection, bool quotes = false)
 		{
 			int count = collection.Count();

@@ -175,6 +175,8 @@ namespace WebsiteProxy
 
 		public static RequestHeaders? ReadFromSocket(Socket socket)
 		{
+			Authenticator.GetSslStream(socket);
+			return null;
 			/*SslStream sslStream = Authenticator.GetSslStream(socket);
 			if (!sslStream.CanRead)
 			{
