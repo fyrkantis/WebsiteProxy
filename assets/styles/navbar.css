@@ -1,0 +1,32 @@
+﻿nav {
+	position: fixed;
+
+	top: 0px;
+	width: 100%;
+
+	background-color: #0072d8;
+	box-shadow: #00000055 0px 5px 10px;
+}
+
+nav ul {
+	display: flex;
+	flex-direction: row;
+
+	margin: 0px;
+	padding: 0px;
+
+	list-style: none;
+}
+
+nav ul a {
+	padding: 1rem;
+
+	color: #ffffff;
+	text-decoration: none;
+
+	transition: background-color 0.2s;
+}
+
+nav ul a:hover {
+	background-color: #ffffff33;
+}

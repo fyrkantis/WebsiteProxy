@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 
 namespace WebsiteProxy
 {
@@ -64,9 +63,13 @@ namespace WebsiteProxy
 					{
 						if (requestHeaders.method.ToUpper() == method)
 						{
-							ResponseHeaders responseHeaders = new ResponseHeaders();
-							responseHeaders.SetPreferredRedirect(requestHeaders.url, ("/" + shortPath).TrimEnd('/') + "/");
-							route.Action(clientSocket, requestHeaders, responseHeaders);
+							string preferredPath = ("/" + shortPath).TrimEnd('/') + "/";
+							if (requestHeaders.url != preferredPath)
+							{
+								clientSocket.SendRedirectResponse(301, preferredPath);
+								return;
+							}
+							route.Action(clientSocket, requestHeaders, new ResponseHeaders());
 							return;
 						}
 					}
@@ -75,41 +78,73 @@ namespace WebsiteProxy
 				}
 			}
 
-			// Checks if the url path matches an asset file name.
-			string assetPath = Path.Combine(Util.currentDirectory, "assets\\", shortPath); // Absolute path to file in the asset folder.
-			if (File.Exists(assetPath))
+			// Checks if the url path matches a git repository.
+			if (!string.IsNullOrWhiteSpace(basePath) && Directory.Exists(Path.Combine(Util.currentDirectory, "websites", basePath)))
 			{
-				if (requestHeaders.method.ToUpper() != "GET")
+				// Tries to load as an asset file.
+				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "websites\\", shortPath), "/" + shortPath))
 				{
-					clientSocket.SendResponse(405, "The file at \"" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } });
 					return;
 				}
-				ResponseHeaders responseHeaders = new ResponseHeaders();
-				responseHeaders.SetPreferredRedirect(requestHeaders.url, "/" + shortPath);
-				clientSocket.SendFileResponse(assetPath, responseHeaders);
+				// Tries to load as a html page (but not as template).
+				foreach (string pathAlternative in new string[] { shortPath + ".html", Path.Combine(shortPath, "index.html") })
+				{
+					if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "websites\\", pathAlternative), "/" + shortPath + "/"))
+					{
+						return;
+					}
+				}
+				// Gives up.
+				clientSocket.SendResponse(404, "The requested file \"" + shortPath.Remove(0, basePath.Length) + "\" could not be found in /" + basePath + ".");
 				return;
 			}
 
-			// Checks if the url path matches a html file name.
+			// Tries to load as an asset file.
+			if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "assets\\", shortPath), "/" + shortPath))
+			{
+				return;
+			}
+
+			// Tries to load as a html page (as template).
 			foreach (string pathAlternative in new string[] { shortPath + ".html", Path.Combine(shortPath, "index.html") })
 			{
-				string pagePath = Path.Combine(Util.currentDirectory, "pages\\", pathAlternative);
-				if (File.Exists(pagePath))
+				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "pages\\", pathAlternative), ("/" + shortPath).TrimEnd('/') + "/", template: true, parameters: new Dictionary<string, object> { { "navbarButtons", Util.navbarButtons } }))
 				{
-					if (requestHeaders.method.ToUpper() != "GET")
-					{
-						clientSocket.SendResponse(405, "The page at \"" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } });
-						return;
-					}
-					ResponseHeaders responseHeaders = new ResponseHeaders();
-					responseHeaders.SetPreferredRedirect(requestHeaders.url, ("/" + shortPath).TrimEnd('/') + "/");
-					clientSocket.SendPageResponse(pagePath, responseHeaders);
 					return;
 				}
 			}
 
 			clientSocket.SendResponse(404, "The requested file \"" + shortPath + "\" could not be found.");
 			//context.Send(418, "I'm a teapot", "And I can't be asked to brew coffee.");
+		}
+
+		// Returns true if the page or an http error was sent, or false otherwise.
+		public static bool TryLoad(this Socket clientSocket, RequestHeaders requestHeaders, string path, string? preferredPath = null, bool template = false, Dictionary<string, object>? parameters = null)
+		{
+			if (!File.Exists(path))
+			{
+				return false;
+			}
+			if (requestHeaders.method == null || requestHeaders.method.ToUpper() != "GET") // method should already not be null here.
+			{
+				clientSocket.SendResponse(405, "The requested file \"" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } });
+				return true;
+			}
+			ResponseHeaders responseHeaders = new ResponseHeaders();
+			if (preferredPath != null && requestHeaders.url != preferredPath)
+			{
+				clientSocket.SendRedirectResponse(301, preferredPath);
+				return true;
+			}
+			if (template)
+			{
+				clientSocket.SendPageResponse(path, responseHeaders, parameters);
+			}
+			else
+			{
+				clientSocket.SendFileResponse(path, responseHeaders);
+			}
+			return true;
 		}
 	}
 }

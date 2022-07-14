@@ -7,11 +7,17 @@ namespace WebsiteProxy
 	{
 		public static void Main()
 		{
+			// Refreshes all internal git repositories.
+			/*foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
+			{
+				GitApi.Pull(directory);
+			}*/
+
 			// Certificate setup: https://stackoverflow.com/a/33905011
 			// Note to self: Certbot makes certificates, openssl combines certificate and key to .pfx file,
 			// wich is loaded in with Windows MMC, and then bound to app with netsh http add sslcert. Phew!
 
-			IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 443);
+			IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 80);
 
 			Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			socket.Bind(endPoint);

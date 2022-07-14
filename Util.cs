@@ -11,22 +11,37 @@ namespace WebsiteProxy
 		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");
 		public static TextInfo textInfo = cultureInfo.TextInfo;
 
-		public static Dictionary<string, string> environment;
-		
-		static Util()
+		public static Dictionary<string, string> environment = ReadEnv(Path.Combine(currentDirectory, ".env"));
+
+		public static Dictionary<string, object> navbarButtons
 		{
-			environment = new Dictionary<string, string>();
-			foreach(string line in File.ReadAllLines(Path.Combine(currentDirectory, ".env")))
+			get
+			{
+				Dictionary<string, object> buttons = new Dictionary<string, object>();
+				DirectoryInfo repositories = new DirectoryInfo(Path.Combine(currentDirectory, "websites\\"));
+				foreach (DirectoryInfo repository in repositories.GetDirectories())
+				{
+					buttons.Add("/" + repository.Name + "/", repository.Name);
+				}
+				return buttons;
+			}
+		}
+
+		public static Dictionary<string, string> ReadEnv(string path)
+		{
+			Dictionary<string, string> env = new Dictionary<string, string>();
+			foreach (string line in File.ReadAllLines(path))
 			{
 				if (line.Contains('='))
 				{
 					string[] parts = line.Split('=', 2);
 					if (parts.Length >= 2)
 					{
-						environment.Add(parts[0], parts[1]);
+						env.Add(parts[0], parts[1]);
 					}
 				}
 			}
+			return env;
 		}
 
 		public static string GrammaticalListing(IEnumerable<object> collection, bool quotes = false)

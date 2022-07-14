@@ -43,7 +43,7 @@ namespace WebsiteProxy
 		}
 		public static void SendPageResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Dictionary<string, object>? parameters = null)
 		{
-			responseHeaders.headers.Add("Content-Disposition", "inline; filename = \"" + Path.GetFileName(path) + "\"");
+			responseHeaders.headers.Add("Content-Disposition", "inline; filename=\"" + Path.GetFileName(path) + "\"");
 			socket.SendBodyResponse(TemplateLoader.Render(path, parameters), responseHeaders);
 		}
 
@@ -71,7 +71,7 @@ namespace WebsiteProxy
 			socket.Send(responseHeaders.GetBytes());
 			socket.Close();
 		}
-		public static void SendRedirect(this Socket socket, int code, string path)
+		public static void SendRedirectResponse(this Socket socket, int code, string path)
 		{
 			ResponseHeaders responseHeaders = new ResponseHeaders(code, new Dictionary<string, object>() { { "Location", path } });
 			MyConsole.WriteHttpStatus(responseHeaders);

@@ -12,7 +12,7 @@ namespace WebsiteProxy
 		{
 			{ 200, "OK" }, { 204, "No Content" },
 			{ 400, "Bad Request" }, { 404, "Not Found" }, { 405, "Method Not Allowed" },
-			{ 300, "Multiple Choices" }, { 301, "Moved Permanently" }, { 302, "Found"},
+			{ 300, "Multiple Choices" }, { 301, "Moved Permanently" }, { 303, "See Other"},
 			{ 500, "Internal Server Error" }, { 504, "Gateway Timeout"}
 		};
 
@@ -175,8 +175,6 @@ namespace WebsiteProxy
 
 		public static RequestHeaders? ReadFromSocket(Socket socket)
 		{
-			Authenticator.GetSslStream(socket);
-			return null;
 			/*SslStream sslStream = Authenticator.GetSslStream(socket);
 			if (!sslStream.CanRead)
 			{
