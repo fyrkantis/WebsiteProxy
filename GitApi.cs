@@ -9,10 +9,24 @@ namespace WebsiteProxy
 
 		static GitApi()
 		{
-			MergeOptions mergeOptions = new MergeOptions();
-			mergeOptions.FileConflictStrategy = CheckoutFileConflictStrategy.Theirs;
-			pullOptions = new PullOptions();
-			pullOptions.MergeOptions = mergeOptions;
+			Credentials credentials = new UsernamePasswordCredentials()
+			{
+				Username = Util.environment["gitUsername"],
+				Password = Util.environment["gitPassword"]
+			};
+			FetchOptions fetchOptions = new FetchOptions()
+			{
+				CredentialsProvider = (_url, _user, _cred) => credentials
+			};
+			MergeOptions mergeOptions = new MergeOptions()
+			{
+				FileConflictStrategy = CheckoutFileConflictStrategy.Theirs
+			};
+			pullOptions = new PullOptions()
+			{
+				MergeOptions = mergeOptions,
+				FetchOptions = fetchOptions
+			};
 		}
 
 		public static void Pull(string path)
