@@ -43,15 +43,18 @@ namespace WebsiteProxy
 			{
 
 				Socket clientSocket = socket.Accept();
+				MyConsole.WriteTimestamp(clientSocket.RemoteEndPoint);
+				clientSocket.ReceiveTimeout = 2000;
 				RequestHeaders? requestHeaders = RequestHeaders.ReadFromSocket(clientSocket);
-				if (requestHeaders != null)
+				if (requestHeaders == null)
 				{
-#if DEBUG
-					Website.HandleConnection(clientSocket, requestHeaders); // Handles connection synchronously.
-#else
-					Task.Run(() => Website.HandleConnection(clientSocket, requestHeaders)); // Handles connection asynchronously.
-#endif
+					continue;
 				}
+#if DEBUG
+				Website.HandleConnection(clientSocket, requestHeaders); // Handles connection synchronously.
+#else
+				Task.Run(() => Website.HandleConnection(clientSocket, requestHeaders)); // Handles connection asynchronously.
+#endif
 			}
 		}
 	}

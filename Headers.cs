@@ -21,14 +21,21 @@ namespace WebsiteProxy
 		// https://stackoverflow.com/a/13230450
 		public Dictionary<string, object> headers = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
-		public static byte[] ReadSocketToNewline(Socket socket)
+		public static byte[]? ReadSocketToNewline(Socket socket)
 		{
 			byte[] bytesBuffer = new byte[bufferSize];
 			List<byte> bytesList = new List<byte>();
 
 			while (true)
 			{
-				int bufferLength = socket.Receive(bytesBuffer, bufferSize, SocketFlags.None);
+				int bufferLength = socket.Receive(bytesBuffer, 0, bufferSize, SocketFlags.None, out SocketError error);
+				if (error != SocketError.Success)
+				{
+					MyConsole.color = ConsoleColor.DarkYellow;
+					MyConsole.Write(" Header error: " + error);
+					socket.SendError(400, "Connection timed out.");
+					return null;
+				}
 				bytesList.AddRange(bytesBuffer);
 				string buffer = Encoding.ASCII.GetString(bytesBuffer);
 				//MyConsole.Write(buffer);
@@ -190,7 +197,11 @@ namespace WebsiteProxy
 			while (true)
 			{
 				//byte[] bytes = ReadStreamToNewline(sslStream);
-				byte[] bytes = ReadSocketToNewline(socket);
+				byte[]? bytes = ReadSocketToNewline(socket);
+				if (bytes == null)
+				{
+					return null;
+				}
 				bytesList.AddRange(bytes);
 				string header = Encoding.ASCII.GetString(bytes);
 				if (string.IsNullOrWhiteSpace(header))
@@ -222,6 +233,13 @@ namespace WebsiteProxy
 						}
 					}
 				}
+			}
+			if (requestHeaders.method == null || requestHeaders.url == null || requestHeaders.protocol == null)
+			{
+				MyConsole.color = ConsoleColor.DarkYellow;
+				MyConsole.Write(" Header error (MissingFields).");
+				socket.SendError(400, "The header is missing vital fields.");
+				return null;
 			}
 			requestHeaders.raw = bytesList.ToArray();
 			return requestHeaders;

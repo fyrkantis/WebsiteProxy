@@ -17,9 +17,6 @@
 				{{end}}
 			</h1>
 			<hr>
-			{{if body}}
-				<p>{{body}}</p>
-			{{end}}
 			{{if errors}}
 				{{if errors | object.typeof == "array"}}
 					<h2>Additional Errors</h2>
@@ -40,7 +37,7 @@
 						<p><b>{{row.key}}:</b> {{row.value}}</p>
 					{{end}}
 				{{else}}
-					<p><i>{{errors}}</i></p>
+					<p>{{errors}}</p>
 				{{end}}
 			{{end}}
 			<a href="/">Return to home page</a>

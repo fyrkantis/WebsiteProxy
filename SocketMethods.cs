@@ -32,9 +32,33 @@ namespace WebsiteProxy
 			responseHeaders.headers.Add("Content-Length", fileInfo.Length);
 
 			MyConsole.WriteHttpStatus(responseHeaders);
-			socket.Send(responseHeaders.GetBytes());
-			socket.SendFile(path);
-			socket.Close();
+			socket.TrySend(() =>
+			{
+				socket.Send(responseHeaders.GetBytes());
+				socket.SendFile(path);
+			});
+		}
+		public static void TrySend(this Socket socket, Action sendFunction)
+		{
+			if (!socket.IsConnected())
+			{
+				MyConsole.color = ConsoleColor.Red;
+				MyConsole.Write(" (Aborted).");
+				return;
+			}
+			try
+			{
+				sendFunction.Invoke();
+				socket.Close();
+				MyConsole.color = ConsoleColor.Green;
+				MyConsole.Write(" (Sent).");
+			}
+			catch(SocketException exception)
+			{
+				MyConsole.color = ConsoleColor.Red;
+				MyConsole.Write(" (Exception: " + exception.ErrorCode + ").");
+				MyConsole.WriteLine(exception.Message);
+			}
 		}
 
 		public static void SendPageResponse(this Socket socket, string path, Dictionary<string, object>? parameters = null)
@@ -59,24 +83,39 @@ namespace WebsiteProxy
 			responseHeaders.headers.Add("Content-Length", bytes.Length);
 
 			MyConsole.WriteHttpStatus(responseHeaders);
-			socket.Send(responseHeaders.GetBytes());
-			socket.Send(bytes);
-			socket.Close();
+			socket.TrySend(() =>
+			{
+				socket.Send(responseHeaders.GetBytes());
+				socket.Send(bytes);
+			});
 		}
 
-		public static void SendResponse(this Socket socket, int code, string? additionalInfo = null, Dictionary<string, object>? headerFields = null)
+		public static void SendError(this Socket socket, int code, object? additionalInfo = null, Dictionary<string, object>? headerFields = null)
+		{
+			ResponseHeaders responseHeaders = new ResponseHeaders(code, headerFields);
+			Dictionary<string, object> parameters = new Dictionary<string, object>()
+			{
+				{ "code", code },
+				{ "message", responseHeaders.message }
+			};
+			if (additionalInfo != null)
+			{
+				parameters.Add("errors", additionalInfo);
+			}
+			socket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages\\error.html"), responseHeaders, parameters);
+		}
+		public static void SendResponse(this Socket socket, int code, Dictionary<string, object>? headerFields = null)
 		{
 			ResponseHeaders responseHeaders = new ResponseHeaders(code, headerFields);
 			MyConsole.WriteHttpStatus(responseHeaders);
-			socket.Send(responseHeaders.GetBytes());
-			socket.Close();
+			socket.TrySend(() =>
+			{
+				socket.Send(responseHeaders.GetBytes());
+			});
 		}
 		public static void SendRedirectResponse(this Socket socket, int code, string path)
 		{
-			ResponseHeaders responseHeaders = new ResponseHeaders(code, new Dictionary<string, object>() { { "Location", path } });
-			MyConsole.WriteHttpStatus(responseHeaders);
-			socket.Send(responseHeaders.GetBytes());
-			socket.Close();
+			socket.SendResponse(code, new Dictionary<string, object>() { { "Location", path } });
 		}
 	}
 }

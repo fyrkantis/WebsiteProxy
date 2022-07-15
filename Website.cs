@@ -28,7 +28,6 @@ namespace WebsiteProxy
 
 		public static async void HandleConnection(Socket clientSocket, RequestHeaders requestHeaders)
 		{
-			MyConsole.WriteTimestamp(clientSocket.RemoteEndPoint);
 			MyConsole.color = ConsoleColor.DarkYellow;
 			MyConsole.WriteMany(requestHeaders.method, requestHeaders.url);
 
@@ -41,12 +40,12 @@ namespace WebsiteProxy
 
 			if (requestHeaders.url == null)
 			{
-				clientSocket.SendResponse(400, "No requested URL was specified.");
+				clientSocket.SendError(400, "No requested URL was specified.");
 				return;
 			}
 			if (requestHeaders.method == null)
 			{
-				clientSocket.SendResponse(400, "No requested method was specified.");
+				clientSocket.SendError(400, "No requested method was specified.");
 				return;
 			}
 
@@ -73,7 +72,7 @@ namespace WebsiteProxy
 							return;
 						}
 					}
-					clientSocket.SendResponse(405, "The route \"/" + basePath + "\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", route.methods) } });
+					clientSocket.SendError(405, "The route \"/" + basePath + "\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", route.methods) } });
 					return;
 				}
 			}
@@ -95,7 +94,7 @@ namespace WebsiteProxy
 					}
 				}
 				// Gives up.
-				clientSocket.SendResponse(404, "The requested file \"" + shortPath.Remove(0, basePath.Length) + "\" could not be found in /" + basePath + ".");
+				clientSocket.SendError(404, "The requested file \"" + shortPath.Remove(0, basePath.Length) + "\" could not be found in /" + basePath + ".");
 				return;
 			}
 
@@ -114,7 +113,7 @@ namespace WebsiteProxy
 				}
 			}
 
-			clientSocket.SendResponse(404, "The requested file \"" + shortPath + "\" could not be found.");
+			clientSocket.SendError(404, "The requested file \"" + shortPath + "\" could not be found.");
 			//context.Send(418, "I'm a teapot", "And I can't be asked to brew coffee.");
 		}
 
@@ -127,7 +126,7 @@ namespace WebsiteProxy
 			}
 			if (requestHeaders.method == null || requestHeaders.method.ToUpper() != "GET") // method should already not be null here.
 			{
-				clientSocket.SendResponse(405, "The requested file \"" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } });
+				clientSocket.SendError(405, "The requested file \"" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } });
 				return true;
 			}
 			ResponseHeaders responseHeaders = new ResponseHeaders();
