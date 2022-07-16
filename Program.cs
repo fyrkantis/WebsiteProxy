@@ -10,11 +10,11 @@ namespace WebsiteProxy
 			// Refreshes all internal git repositories.
 			foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
 			{
-				MyConsole.WriteTimestamp();
-				MyConsole.Write(" " + new DirectoryInfo(directory).Name + ": ");
+				MyConsole.color = ConsoleColor.Magenta;
+				MyConsole.Write(new DirectoryInfo(directory).Name + " ");
 				MyConsole.WriteMergeResult(GitApi.Pull(directory));
+				MyConsole.WriteLine();
 			}
-			MyConsole.WriteLine();
 			MyConsole.WriteLine();
 
 			// Certificate setup: https://stackoverflow.com/a/33905011

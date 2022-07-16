@@ -153,14 +153,8 @@ namespace WebsiteProxy
 			}
 		}
 
-		public static void WriteMergeResult(MergeResult? response)
+		public static void WriteMergeResult(MergeResult response)
 		{
-			if (response == null)
-			{
-				color = ConsoleColor.Red;
-				Write("NoResult");
-				return;
-			}
 			switch (response.Status)
 			{
 				case MergeStatus.UpToDate:

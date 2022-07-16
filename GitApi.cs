@@ -31,12 +31,11 @@ namespace WebsiteProxy
 			};
 		}
 
-		public static MergeResult? Pull(string path)
+		public static MergeResult Pull(string path)
 		{
 			using(Repository repository = new Repository(path)) {
 				return Commands.Pull(repository, new Signature(identity, DateTimeOffset.UtcNow), pullOptions);
 			}
-			return null;
 		}
 	}
 }

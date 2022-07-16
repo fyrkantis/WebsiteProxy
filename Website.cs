@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using LibGit2Sharp;
+using Newtonsoft.Json.Linq;
+using System.Net.Sockets;
 
 namespace WebsiteProxy
 {
@@ -6,26 +8,87 @@ namespace WebsiteProxy
 	{
 		static Route[] routes =
 		{
-			new Route("git", new string[] { "POST" }, (clientSocket, requestHeaders) =>
+			new Route("github", new string[] { "POST" }, (clientSocket, requestHeaders) =>
 			{
-				MyConsole.WriteData("Post data", clientSocket.ReadPost(requestHeaders));
-				clientSocket.SendResponse(204);
+				string? data = clientSocket.ReadPost(requestHeaders);
+				if (!requestHeaders.headers.ContainsKey("Content-Type"))
+				{
+					clientSocket.SendError(400, "Missing \"Content-Type\" header field.");
+					return;
+				}
+				if (((string)requestHeaders.headers["Content-Type"]).ToLower() != "application/json")
+				{
+					clientSocket.SendError(415, "Expects application/json.");
+					return;
+				}
+				if (data == null)
+				{
+					clientSocket.SendError(400, "No data was received.");
+					return;
+				}
+				JObject? json = JObject.Parse(data);
+				if (json == null)
+				{
+					clientSocket.SendError(400, "Unable to decode json.");
+					return;
+				}
+				JToken? repository = json.SelectToken("repository");
+				if (repository == null)
+				{
+					clientSocket.SendError(400, "\"repository\" field is missing.");
+					return;
+				}
+				string? name = repository.Value<string>("name");
+				if (name == null)
+				{
+					clientSocket.SendError(400, "\"name\" field in repository is missing.");
+					return;
+				}
+				string? node = repository.Value<string>("node_id");
+				if (node == null || node != Util.environment["gitNodeToken"])
+				{
+					clientSocket.SendError(401, "The correct repository \"node_id\" token was not provided.");
+					return;
+				}
+				MyConsole.color = ConsoleColor.Blue;
+				MyConsole.WriteMany(name);
+				string path = Path.Combine(Util.currentDirectory, "websites\\", name);
+				if (!Directory.Exists(path))
+				{
+					clientSocket.SendError(404, "The repository \"" + name + "\" does not exist on this server.");
+					return;
+				}
+				MyConsole.Write(" ");
+				try
+				{
+					MyConsole.WriteMergeResult(GitApi.Pull(path));
+					clientSocket.SendResponse(204);
+				}
+				catch (LibGit2SharpException exception)
+				{
+					MyConsole.color = ConsoleColor.Red;
+					MyConsole.Write("(Exception: LibGit2Sharp)");
+					clientSocket.SendError(500, exception.Message);
+					MyConsole.color = ConsoleColor.Red;
+				}
 			}),
 			new Route("formtest", new string[] { "POST" }, (clientSocket, requestHeaders) =>
 			{
 				string? data = clientSocket.ReadPost(requestHeaders);
-				MyConsole.WriteData("Post data", data);
-				if (data == null)
+				if (data != null)
 				{
-					clientSocket.SendError(422, "No data was received.");
-					return;
+					clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages\\error.html"), new Dictionary<string, object>
+					{
+						{ "navbarButtons", Util.navbarButtons },
+						{ "message", "Data received" },
+						{ "errors", data }
+					});
 				}
-				clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages\\error.html"), new Dictionary<string, object>
+				else
 				{
-					{ "navbarButtons", Util.navbarButtons },
-					{ "message", "Data received" },
-					{ "errors", data }
-				});
+					clientSocket.SendError(400, "No data was received.");
+				}
+				MyConsole.WriteData("Post data", data);
 			}),
 			new Route("test", new string[] { "GET" }, (clientSocket, requestHeaders) =>
 			{

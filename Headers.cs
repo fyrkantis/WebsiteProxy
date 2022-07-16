@@ -11,7 +11,7 @@ namespace WebsiteProxy
 		public static Dictionary<int, string> messages = new Dictionary<int, string>()
 		{
 			{ 200, "OK" }, { 204, "No Content" },
-			{ 400, "Bad Request" }, { 404, "Not Found" }, { 405, "Method Not Allowed" }, { 422, "Unprocessable Entity" },
+			{ 400, "Bad Request" }, { 401, "Unauthorized"}, { 404, "Not Found" }, { 405, "Method Not Allowed" }, { 408, "Request Timeout"}, { 415, "Unsupported Media Type" }, { 422, "Unprocessable Entity" },
 			{ 300, "Multiple Choices" }, { 303, "See Other"}, { 308, "Permanent Redirect" },
 			{ 500, "Internal Server Error" }, { 504, "Gateway Timeout"}
 		};
@@ -31,7 +31,8 @@ namespace WebsiteProxy
 				if (!socket.IsConnected())
 				{
 					MyConsole.color = ConsoleColor.DarkYellow;
-					MyConsole.Write(" Header error: Connection lost");
+					MyConsole.Write(" Connection lost.");
+
 					return null;
 				}
 				int bufferLength = socket.Receive(bytesBuffer, 0, bufferSize, SocketFlags.None, out SocketError error);
@@ -39,7 +40,7 @@ namespace WebsiteProxy
 				{
 					MyConsole.color = ConsoleColor.DarkYellow;
 					MyConsole.Write(" Header error: " + error);
-					socket.SendError(400, "Connection timed out.");
+					socket.SendError(408, "Connection timed out.");
 					return null;
 				}
 				bytesList.AddRange(bytesBuffer);
@@ -250,7 +251,7 @@ namespace WebsiteProxy
 			{
 				MyConsole.color = ConsoleColor.DarkYellow;
 				MyConsole.Write(" Header error: MissingFields");
-				socket.SendError(400, "The header is missing vital fields.");
+				socket.SendError(400, "Missing vital header fields.");
 				return null;
 			}
 			requestHeaders.raw = bytesList.ToArray();

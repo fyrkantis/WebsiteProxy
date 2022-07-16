@@ -147,6 +147,11 @@ namespace WebsiteProxy
 				parameters.Add("errors", additionalInfo);
 			}
 			socket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages\\error.html"), responseHeaders, parameters);
+			if (additionalInfo != null)
+			{
+				MyConsole.color = ConsoleColor.Red;
+				MyConsole.WriteLine(additionalInfo);
+			}
 		}
 
 		public static void SendResponse(this Socket socket, int code, Dictionary<string, object>? headerFields = null)
