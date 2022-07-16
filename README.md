@@ -1,2 +1,2 @@
-# PainterPro
-*The greatest scam ever.*
+# Dave's fantastic website
+*It's great!*
