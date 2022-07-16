@@ -44,12 +44,12 @@ namespace WebsiteProxy
 					clientSocket.SendError(400, "\"name\" field in repository is missing.");
 					return;
 				}
-				string? node = repository.Value<string>("node_id");
+				/*string? node = repository.Value<string>("node_id");
 				if (node == null || node != Util.environment["gitNodeToken"])
 				{
 					clientSocket.SendError(401, "The correct repository \"node_id\" token was not provided.");
 					return;
-				}
+				}*/
 				MyConsole.color = ConsoleColor.Blue;
 				MyConsole.WriteMany(name);
 				string path = Path.Combine(Util.currentDirectory, "websites\\", name);
