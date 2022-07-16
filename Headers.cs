@@ -200,6 +200,12 @@ namespace WebsiteProxy
 				byte[]? bytes = ReadSocketToNewline(socket);
 				if (bytes == null)
 				{
+					string headers = Encoding.ASCII.GetString(bytesList.ToArray());
+					if (!string.IsNullOrWhiteSpace(headers))
+					{
+						MyConsole.color = ConsoleColor.DarkGray;
+						MyConsole.WriteLine(headers);
+					}
 					return null;
 				}
 				bytesList.AddRange(bytes);

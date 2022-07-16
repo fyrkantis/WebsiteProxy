@@ -8,10 +8,14 @@ namespace WebsiteProxy
 		public static void Main()
 		{
 			// Refreshes all internal git repositories.
-			/*foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
+			foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
 			{
-				GitApi.Pull(directory);
-			}*/
+				MyConsole.color = ConsoleColor.White;
+				MyConsole.Write(new DirectoryInfo(directory).Name + ": ");
+				MyConsole.WriteMergeResult(GitApi.Pull(directory));
+				MyConsole.WriteLine();
+			}
+			MyConsole.WriteLine();
 
 			// Certificate setup: https://stackoverflow.com/a/33905011
 			// Note to self: Certbot makes certificates, openssl combines certificate and key to .pfx file,

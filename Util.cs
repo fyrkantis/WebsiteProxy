@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using LibGit2Sharp;
+using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 
@@ -146,6 +147,34 @@ namespace WebsiteProxy
 				{
 					Write("\"" + endPoint + "\"");
 				}
+			}
+		}
+
+		public static void WriteMergeResult(MergeResult? response)
+		{
+			if (response == null)
+			{
+				color = ConsoleColor.Red;
+				Write("NoResult");
+				return;
+			}
+			switch (response.Status)
+			{
+				case MergeStatus.UpToDate:
+					color = ConsoleColor.Green;
+					break;
+				case MergeStatus.FastForward:
+					color = ConsoleColor.DarkYellow;
+					break;
+				default:
+					color = ConsoleColor.Red;
+					break;
+			}
+			Write(response.Status);
+			if (response.Commit != null)
+			{
+				color = ConsoleColor.Magenta;
+				Write(" (" + response.Commit + ")");
 			}
 		}
 

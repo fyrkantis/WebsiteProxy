@@ -1,4 +1,5 @@
 ﻿using LibGit2Sharp;
+using LibGit2Sharp.Handlers;
 
 namespace WebsiteProxy
 {
@@ -12,11 +13,12 @@ namespace WebsiteProxy
 			Credentials credentials = new UsernamePasswordCredentials()
 			{
 				Username = Util.environment["gitUsername"],
-				Password = Util.environment["gitPassword"]
+				Password = Util.environment["gitLoginToken"]
 			};
+			CredentialsHandler credentialsHandler = (_url, _user, _cred) => credentials;
 			FetchOptions fetchOptions = new FetchOptions()
 			{
-				CredentialsProvider = (_url, _user, _cred) => credentials
+				CredentialsProvider = credentialsHandler
 			};
 			MergeOptions mergeOptions = new MergeOptions()
 			{
@@ -29,10 +31,12 @@ namespace WebsiteProxy
 			};
 		}
 
-		public static void Pull(string path)
+		public static MergeResult? Pull(string path)
 		{
-			Repository repository = new Repository(path);
-			MergeResult result = Commands.Pull(repository, new Signature(identity, DateTimeOffset.UtcNow), pullOptions);
+			using(Repository repository = new Repository(path)) {
+				return Commands.Pull(repository, new Signature(identity, DateTimeOffset.UtcNow), pullOptions);
+			}
+			return null;
 		}
 	}
 }
