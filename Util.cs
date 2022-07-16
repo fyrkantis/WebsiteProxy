@@ -18,7 +18,10 @@ namespace WebsiteProxy
 		{
 			get
 			{
-				Dictionary<string, object> buttons = new Dictionary<string, object>();
+				Dictionary<string, object> buttons = new Dictionary<string, object>()
+				{
+					{ "/", "Home page" }
+				};
 				DirectoryInfo repositories = new DirectoryInfo(Path.Combine(currentDirectory, "websites\\"));
 				foreach (DirectoryInfo repository in repositories.GetDirectories())
 				{
@@ -178,12 +181,20 @@ namespace WebsiteProxy
 			}
 		}
 
-		public static void WriteData(string name, object data)
+		public static void WriteData(string name, object? data)
 		{
 			color = ConsoleColor.White;
 			WriteLine(name + ": ");
-			color = ConsoleColor.Magenta;
-			Write(data);
+			if (data != null)
+			{
+				color = ConsoleColor.Magenta;
+				Write(data);
+			}
+			else
+			{
+				color = ConsoleColor.DarkGray;
+				Write("null");
+			}
 		}
 
 		public static void WriteMany(params object?[] elements)

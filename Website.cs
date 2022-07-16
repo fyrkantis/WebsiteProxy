@@ -6,9 +6,30 @@ namespace WebsiteProxy
 	{
 		static Route[] routes =
 		{
-			new Route("test", new string[] { "GET" }, (clientSocket, requestHeaders, responseHeaders) =>
+			new Route("git", new string[] { "POST" }, (clientSocket, requestHeaders) =>
 			{
-				clientSocket.SendBodyResponse(";)", responseHeaders);
+				MyConsole.WriteData("Post data", clientSocket.ReadPost(requestHeaders));
+				clientSocket.SendResponse(204);
+			}),
+			new Route("formtest", new string[] { "POST" }, (clientSocket, requestHeaders) =>
+			{
+				string? data = clientSocket.ReadPost(requestHeaders);
+				MyConsole.WriteData("Post data", data);
+				if (data == null)
+				{
+					clientSocket.SendError(422, "No data was received.");
+					return;
+				}
+				clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages\\error.html"), new Dictionary<string, object>
+				{
+					{ "navbarButtons", Util.navbarButtons },
+					{ "message", "Data received" },
+					{ "errors", data }
+				});
+			}),
+			new Route("test", new string[] { "GET" }, (clientSocket, requestHeaders) =>
+			{
+				clientSocket.SendBodyResponse(";)");
 			})
 		};
 
@@ -16,9 +37,9 @@ namespace WebsiteProxy
 		{
 			public string name;
 			public string[] methods;
-			public Action<Socket, RequestHeaders, ResponseHeaders> Action;
+			public Action<Socket, RequestHeaders> Action;
 
-			public Route(string routeName, string[] routeMethods, Action<Socket, RequestHeaders, ResponseHeaders> RouteAction)
+			public Route(string routeName, string[] routeMethods, Action<Socket, RequestHeaders> RouteAction)
 			{
 				name = routeName;
 				methods = routeMethods;
@@ -58,21 +79,21 @@ namespace WebsiteProxy
 			{
 				if (route.name == basePath)
 				{
+					string preferredPath = ("/" + shortPath).TrimEnd('/') + "/";
+					if (requestHeaders.url != preferredPath)
+					{
+						clientSocket.SendRedirectResponse(308, preferredPath);
+						return;
+					}
 					foreach (string method in route.methods)
 					{
 						if (requestHeaders.method.ToUpper() == method)
 						{
-							string preferredPath = ("/" + shortPath).TrimEnd('/') + "/";
-							if (requestHeaders.url != preferredPath)
-							{
-								clientSocket.SendRedirectResponse(301, preferredPath);
-								return;
-							}
-							route.Action(clientSocket, requestHeaders, new ResponseHeaders());
+							route.Action(clientSocket, requestHeaders);
 							return;
 						}
 					}
-					clientSocket.SendError(405, "The route \"/" + basePath + "\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", route.methods) } });
+					clientSocket.SendError(405, "The route \"/" + basePath + "/\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", route.methods) } });
 					return;
 				}
 			}
@@ -94,7 +115,7 @@ namespace WebsiteProxy
 					}
 				}
 				// Gives up.
-				clientSocket.SendError(404, "The requested file \"" + shortPath.Remove(0, basePath.Length) + "\" could not be found in /" + basePath + ".");
+				clientSocket.SendError(404, "The requested file \"" + shortPath.Remove(0, basePath.Length) + "\" could not be found in /" + basePath + "/.");
 				return;
 			}
 
@@ -113,7 +134,7 @@ namespace WebsiteProxy
 				}
 			}
 
-			clientSocket.SendError(404, "The requested file \"" + shortPath + "\" could not be found.");
+			clientSocket.SendError(404, "The requested file \"/" + shortPath + "\" could not be found.");
 			//context.Send(418, "I'm a teapot", "And I can't be asked to brew coffee.");
 		}
 
@@ -126,13 +147,13 @@ namespace WebsiteProxy
 			}
 			if (requestHeaders.method == null || requestHeaders.method.ToUpper() != "GET") // method should already not be null here.
 			{
-				clientSocket.SendError(405, "The requested file \"" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } });
+				clientSocket.SendError(405, "The requested file \"/" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } });
 				return true;
 			}
 			ResponseHeaders responseHeaders = new ResponseHeaders();
 			if (preferredPath != null && requestHeaders.url != preferredPath)
 			{
-				clientSocket.SendRedirectResponse(301, preferredPath);
+				clientSocket.SendRedirectResponse(308, preferredPath);
 				return true;
 			}
 			if (template)

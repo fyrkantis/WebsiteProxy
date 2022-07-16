@@ -11,8 +11,8 @@ namespace WebsiteProxy
 		public static Dictionary<int, string> messages = new Dictionary<int, string>()
 		{
 			{ 200, "OK" }, { 204, "No Content" },
-			{ 400, "Bad Request" }, { 404, "Not Found" }, { 405, "Method Not Allowed" },
-			{ 300, "Multiple Choices" }, { 301, "Moved Permanently" }, { 303, "See Other"},
+			{ 400, "Bad Request" }, { 404, "Not Found" }, { 405, "Method Not Allowed" }, { 422, "Unprocessable Entity" },
+			{ 300, "Multiple Choices" }, { 303, "See Other"}, { 308, "Permanent Redirect" },
 			{ 500, "Internal Server Error" }, { 504, "Gateway Timeout"}
 		};
 
@@ -28,6 +28,12 @@ namespace WebsiteProxy
 
 			while (true)
 			{
+				if (!socket.IsConnected())
+				{
+					MyConsole.color = ConsoleColor.DarkYellow;
+					MyConsole.Write(" Header error: Connection lost");
+					return null;
+				}
 				int bufferLength = socket.Receive(bytesBuffer, 0, bufferSize, SocketFlags.None, out SocketError error);
 				if (error != SocketError.Success)
 				{
@@ -243,7 +249,7 @@ namespace WebsiteProxy
 			if (requestHeaders.method == null || requestHeaders.url == null || requestHeaders.protocol == null)
 			{
 				MyConsole.color = ConsoleColor.DarkYellow;
-				MyConsole.Write(" Header error (MissingFields).");
+				MyConsole.Write(" Header error: MissingFields");
 				socket.SendError(400, "The header is missing vital fields.");
 				return null;
 			}

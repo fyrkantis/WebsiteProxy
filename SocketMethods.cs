@@ -18,6 +18,46 @@ namespace WebsiteProxy
 			}
 		}
 
+		public static string? ReadPost(this Socket socket, RequestHeaders requestHeaders)
+		{
+			if (!requestHeaders.headers.ContainsKey("Content-Length")
+				|| !int.TryParse(requestHeaders.headers["Content-Length"].ToString(), out int length))
+			{
+				return null;
+			}
+			byte[]? bytes = socket.ReceiveBytes(length);
+			if (bytes == null)
+			{
+				return null;
+			}
+			return Encoding.UTF8.GetString(bytes);
+		}
+
+		public static byte[]? ReceiveBytes(this Socket socket, int bytesLength)
+		{
+			List<byte> bytesList = new List<byte>();
+			while (true)
+			{
+				int bytesLeft = bytesLength - bytesList.Count;
+				if (!socket.IsConnected() || bytesLeft <= 0)
+				{
+					break;
+				}
+				byte[] bytesBuffer = new byte[bytesLeft];
+				int bufferLength = socket.Receive(bytesBuffer);
+				if (bufferLength <= 0)
+				{
+					break;
+				}
+				bytesList.AddRange(bytesBuffer);
+			}
+			if (bytesList.Count > 0)
+			{
+				return bytesList.ToArray();
+			}
+			return null;
+		}
+
 		public static void SendFileResponse(this Socket socket, string path)
 		{
 			socket.SendFileResponse(path, new ResponseHeaders());
@@ -92,9 +132,13 @@ namespace WebsiteProxy
 
 		public static void SendError(this Socket socket, int code, object? additionalInfo = null, Dictionary<string, object>? headerFields = null)
 		{
-			ResponseHeaders responseHeaders = new ResponseHeaders(code, headerFields);
+			socket.SendError(code, new ResponseHeaders(code, headerFields), additionalInfo);
+		}
+		public static void SendError(this Socket socket, int code, ResponseHeaders responseHeaders, object? additionalInfo = null)
+		{
 			Dictionary<string, object> parameters = new Dictionary<string, object>()
 			{
+				{ "navbarButtons", Util.navbarButtons },
 				{ "code", code },
 				{ "message", responseHeaders.message }
 			};
@@ -104,9 +148,13 @@ namespace WebsiteProxy
 			}
 			socket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages\\error.html"), responseHeaders, parameters);
 		}
+
 		public static void SendResponse(this Socket socket, int code, Dictionary<string, object>? headerFields = null)
 		{
-			ResponseHeaders responseHeaders = new ResponseHeaders(code, headerFields);
+			socket.SendResponse(new ResponseHeaders(code, headerFields));
+		}
+		public static void SendResponse(this Socket socket, ResponseHeaders responseHeaders)
+		{
 			MyConsole.WriteHttpStatus(responseHeaders);
 			socket.TrySend(() =>
 			{
