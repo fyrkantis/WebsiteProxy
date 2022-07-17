@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="assets\images\" />
     <Folder Include="assets\scripts\" />
   </ItemGroup>
 

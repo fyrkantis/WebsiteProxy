@@ -12,19 +12,36 @@ img, canvas, input[type=submit], input[type=button] {
 }
 
 body {
+	min-height: 100vh;
+
 	margin: 0px;
 
-	background-color: #3eca9c;
+	background-color: #709255;
+	background-image: linear-gradient(#709255, #3e5622)
 }
 
 main {
+	overflow: auto; /* Prevents float elements from overflowing. */
+
 	margin: var(--space);
 	padding: var(--space);
 
 	background-color: #ffffff;
 	box-shadow: #00000055 5px 5px 10px;
-
 	border-radius: 1rem;
+}
+
+aside {
+	float: right;
+	margin: 2rem;
+	padding: 2rem;
+
+	background-color: #32a6c3;
+	color: #ffffff;
+}
+
+aside img {
+	max-width: 20rem;
 }
 
 img {
