@@ -7,7 +7,7 @@ namespace WebsiteProxy
 {
 	public static class Util
 	{
-		public static string currentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+		public static string currentDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
 
 		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");
 		public static TextInfo textInfo = cultureInfo.TextInfo;
