@@ -1,4 +1,4 @@
-﻿using LibGit2Sharp;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Sockets;
 
@@ -26,7 +26,7 @@ namespace WebsiteProxy
 					clientSocket.SendError(400, "No data was received.");
 					return;
 				}
-				JObject? json = JObject.Parse(data);
+				JObject? json = JsonConvert.DeserializeObject<JObject>(data);
 				if (json == null)
 				{
 					clientSocket.SendError(400, "Unable to decode json.");
@@ -58,19 +58,7 @@ namespace WebsiteProxy
 					clientSocket.SendError(404, "The repository \"" + name + "\" does not exist on this server.");
 					return;
 				}
-				MyConsole.Write(" ");
-				try
-				{
-					MyConsole.WriteMergeResult(GitApi.Pull(path));
-					clientSocket.SendResponse(204);
-				}
-				catch (LibGit2SharpException exception)
-				{
-					MyConsole.color = ConsoleColor.Red;
-					MyConsole.Write("(Exception: LibGit2Sharp)");
-					clientSocket.SendError(500, exception.Message);
-					MyConsole.color = ConsoleColor.Red;
-				}
+				clientSocket.SendError(501);
 			}),
 			new Route("formtest", new string[] { "POST" }, (clientSocket, requestHeaders) =>
 			{

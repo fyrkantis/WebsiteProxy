@@ -14,14 +14,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
-    <PackageReference Include="MimeTypes" Version="2.3.0">
+    <PackageReference Include="MimeTypes" Version="2.4.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Renovo.AWSCDK.Certbot" Version="2.2.153" />
-    <PackageReference Include="Scriban" Version="5.4.1" />
-    <PackageReference Include="SkiaSharp" Version="2.88.0" />
+    <PackageReference Include="Renovo.AWSCDK.Certbot" Version="2.2.155" />
+    <PackageReference Include="Scriban" Version="5.5.0" />
+    <PackageReference Include="Squirrel.Windows" Version="2.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,5 +29,13 @@
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
+
+  <ItemGroup>
+    <PackageReference Include="Squirrel.Windows" Version="2.0.1" GeneratePathProperty="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- workaround for https://github.com/Squirrel/Squirrel.Windows/issues/1649 -->
+    <Reference Include="$(PkgSquirrel_Windows)\lib\Net45\*.dll" />
+  </ItemGroup>
 
 </Project>

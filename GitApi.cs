@@ -1,7 +1,4 @@
-﻿using LibGit2Sharp;
-using LibGit2Sharp.Handlers;
-
-namespace WebsiteProxy
+﻿/*namespace WebsiteProxy
 {
 	public static class GitApi
 	{
@@ -39,3 +36,4 @@ namespace WebsiteProxy
 		}
 	}
 }
+*/

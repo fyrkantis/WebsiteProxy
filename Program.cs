@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Squirrel;
+using System.Net;
 using System.Net.Sockets;
 
 namespace WebsiteProxy
@@ -8,16 +9,21 @@ namespace WebsiteProxy
 		public static void Main()
 		{
 			// Refreshes all internal git repositories.
+			// TODO: https://stackoverflow.com/a/36437100/13347795.
 			foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
 			{
 				MyConsole.color = ConsoleColor.Magenta;
 				MyConsole.Write(new DirectoryInfo(directory).Name + " ");
-				MyConsole.WriteMergeResult(GitApi.Pull(directory));
-				MyConsole.WriteLine();
+
+				// Fixed by our lord and savior AaRNOTT https://github.com/Squirrel/Squirrel.Windows/issues/1649#issuecomment-932853326.
+				using (UpdateManager manager = new UpdateManager(directory))
+				{
+					manager.UpdateApp();
+				}
 			}
 			MyConsole.WriteLine();
 
-			// Certificate setup: https://stackoverflow.com/a/33905011
+			// Certificate setup: https://stackoverflow.com/a/33905011.
 			// Note to self: Certbot makes certificates, openssl combines certificate and key to .pfx file,
 			// wich is loaded in with Windows MMC, and then bound to app with netsh http add sslcert. Phew!
 
