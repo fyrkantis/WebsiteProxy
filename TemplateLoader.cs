@@ -29,7 +29,7 @@ namespace WebsiteProxy
 		{
 			public string GetPath(TemplateContext context, SourceSpan callerSpan, string templateName) // TODO: Adapt for relative paths.
 			{
-				return Path.Combine(Util.currentDirectory, "templates\\", templateName.Replace('/', '\\').TrimStart('\\'));
+				return Path.Combine(Util.currentDirectory, "templates", templateName.TrimStart('/', '\\'));
 			}
 
 			public string Load(TemplateContext context, SourceSpan callerSpan, string templatePath)

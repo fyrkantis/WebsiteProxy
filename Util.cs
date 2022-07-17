@@ -22,7 +22,7 @@ namespace WebsiteProxy
 				{
 					{ "/", "Home page" }
 				};
-				DirectoryInfo repositories = new DirectoryInfo(Path.Combine(currentDirectory, "websites\\"));
+				DirectoryInfo repositories = new DirectoryInfo(Path.Combine(currentDirectory, "websites"));
 				foreach (DirectoryInfo repository in repositories.GetDirectories())
 				{
 					buttons.Add("/" + repository.Name + "/", repository.Name);

@@ -52,7 +52,7 @@ namespace WebsiteProxy
 				}*/
 				MyConsole.color = ConsoleColor.Blue;
 				MyConsole.WriteMany(name);
-				string path = Path.Combine(Util.currentDirectory, "websites\\", name);
+				string path = Path.Combine(Util.currentDirectory, "websites", name);
 				if (!Directory.Exists(path))
 				{
 					clientSocket.SendError(404, "The repository \"" + name + "\" does not exist on this server.");
@@ -77,7 +77,7 @@ namespace WebsiteProxy
 				string? data = clientSocket.ReadPost(requestHeaders);
 				if (data != null)
 				{
-					clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages\\error.html"), new Dictionary<string, object>
+					clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages", "error.html"), new Dictionary<string, object>
 					{
 						{ "navbarButtons", Util.navbarButtons },
 						{ "message", "Data received" },
@@ -165,14 +165,14 @@ namespace WebsiteProxy
 			if (!string.IsNullOrWhiteSpace(basePath) && Directory.Exists(Path.Combine(Util.currentDirectory, "websites", basePath)))
 			{
 				// Tries to load as an asset file.
-				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "websites\\", shortPath), "/" + shortPath))
+				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "websites", shortPath), "/" + shortPath))
 				{
 					return;
 				}
 				// Tries to load as a html page (but not as template).
 				foreach (string pathAlternative in new string[] { shortPath + ".html", Path.Combine(shortPath, "index.html") })
 				{
-					if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "websites\\", pathAlternative), "/" + shortPath + "/"))
+					if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "websites", pathAlternative), "/" + shortPath + "/"))
 					{
 						return;
 					}
@@ -183,7 +183,7 @@ namespace WebsiteProxy
 			}
 
 			// Tries to load as an asset file.
-			if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "assets\\", shortPath), "/" + shortPath))
+			if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "assets", shortPath), "/" + shortPath))
 			{
 				return;
 			}
@@ -191,7 +191,7 @@ namespace WebsiteProxy
 			// Tries to load as a html page (as template).
 			foreach (string pathAlternative in new string[] { shortPath + ".html", Path.Combine(shortPath, "index.html") })
 			{
-				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "pages\\", pathAlternative), ("/" + shortPath).TrimEnd('/') + "/", template: true, parameters: new Dictionary<string, object> { { "navbarButtons", Util.navbarButtons } }))
+				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "pages", pathAlternative), ("/" + shortPath).TrimEnd('/') + "/", template: true, parameters: new Dictionary<string, object> { { "navbarButtons", Util.navbarButtons } }))
 				{
 					return;
 				}
