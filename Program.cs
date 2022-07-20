@@ -12,10 +12,21 @@ namespace WebsiteProxy
 			List<Task> pullTasks = new List<Task>();
 			foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
 			{
-				pullTasks.Add(GitApi.Pull(directory));
+				Task task = new Task(() =>
+				{
+					Log log = new Log();
+					GitApi.Pull(directory, log);
+					log.Write();
+				});
+				task.Start();
+				pullTasks.Add(task);
 			}
 
-			Task.WhenAll(pullTasks).Wait();
+			if (!Task.WhenAll(pullTasks).Wait(5000))
+			{
+				Log.Write("Some pull tasks failed.", LogColor.Error);
+			}
+			Log.Write();
 
 			// Certificate setup: https://stackoverflow.com/a/33905011
 			// Note to self: Certbot makes certificates, openssl combines certificate and key to .pfx file,
@@ -26,38 +37,32 @@ namespace WebsiteProxy
 			Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			socket.Bind(endPoint);
 
-			Console.ForegroundColor = ConsoleColor.White;
-			Console.Write("Server running...");
-
+			Log log = new Log();
+			log.Add("Server running...");
 #if DEBUG
-			Console.ForegroundColor = ConsoleColor.Green;
-			Console.WriteLine(" (Debug mode enabled)");
-			Console.ForegroundColor = ConsoleColor.Red;
-			Console.Write("DO NOT USE DEBUG MODE IN PRODUCTION!");
+			log.Add("(Debug mode enabled)", LogColor.Success);
+			log.Add("DO NOT USE DEBUG MODE IN PRODUCTION!", LogColor.Error);
 #else
-			Console.ForegroundColor = ConsoleColor.Red;
-			Console.WriteLine(" (Debug mode disabled)");
-			Console.ForegroundColor = ConsoleColor.DarkYellow;
-			Console.Write("Run in debug mode for logging.");
+			log.Add("(Debug mode disabled)", LogColor.Error);
 #endif
-			Console.ForegroundColor = ConsoleColor.White;
+			log.Write();
 
 			socket.Listen(10); // Starts listening on port with a max queue of 10.
 			while (true)
 			{
 
 				Socket clientSocket = socket.Accept();
-				MyConsole.WriteTimestamp(clientSocket.RemoteEndPoint);
+				log = new Log(true, clientSocket.RemoteEndPoint);
 				clientSocket.ReceiveTimeout = 2000;
-				RequestHeaders? requestHeaders = RequestHeaders.ReadFromSocket(clientSocket);
+				RequestHeaders? requestHeaders = RequestHeaders.ReadFromSocket(clientSocket, log);
 				if (requestHeaders == null)
 				{
 					continue;
 				}
 #if DEBUG
-				Website.HandleConnection(clientSocket, requestHeaders); // Handles connection synchronously.
+				Website.HandleConnection(clientSocket, requestHeaders, log); // Handles connection synchronously.
 #else
-				Task.Run(() => Website.HandleConnection(clientSocket, requestHeaders)); // Handles connection asynchronously.
+				Task.Run(() => Website.HandleConnection(clientSocket, requestHeaders, log)); // Handles connection asynchronously.
 #endif
 			}
 		}

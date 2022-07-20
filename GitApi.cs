@@ -4,7 +4,7 @@ namespace WebsiteProxy
 {
 	public static class GitApi
 	{
-		public static async Task Pull(string path)
+		public static void Pull(string path, Log? log = null)
 		{
 			Process process = new Process()
 			{
@@ -19,11 +19,16 @@ namespace WebsiteProxy
 			};
 			process.StartInfo.WorkingDirectory = path;
 			process.Start();
-			await Task.Run(process.WaitForExit);
-			using (StreamReader stream = process.StandardOutput)
+			if (log != null)
 			{
-				MyConsole.color = ConsoleColor.Blue;
-				MyConsole.Write(new DirectoryInfo(path).Name + " " + stream.ReadToEnd());
+				if (process.WaitForExit(5000))
+				{
+					log.Add(new DirectoryInfo(path).Name, LogColor.Name);
+					using (StreamReader stream = process.StandardOutput)
+					{
+						log.Add(stream.ReadToEnd().Trim('\r', '\n'), LogColor.Data);
+					}
+				}
 			}
 		}
 	}

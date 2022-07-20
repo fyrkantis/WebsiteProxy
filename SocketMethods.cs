@@ -58,11 +58,11 @@ namespace WebsiteProxy
 			return null;
 		}
 
-		public static void SendFileResponse(this Socket socket, string path)
+		public static void SendFileResponse(this Socket socket, string path, Log? log = null)
 		{
-			socket.SendFileResponse(path, new ResponseHeaders());
+			socket.SendFileResponse(path, new ResponseHeaders(), log);
 		}
-		public static void SendFileResponse(this Socket socket, string path, ResponseHeaders responseHeaders)
+		public static void SendFileResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Log? log = null)
 		{
 			responseHeaders.SetHashFile(path);
 
@@ -71,70 +71,84 @@ namespace WebsiteProxy
 			responseHeaders.headers.Add("Content-Type", MimeTypes.GetMimeType(fileInfo.Extension) + "; charset=utf-8");
 			responseHeaders.headers.Add("Content-Length", fileInfo.Length);
 
-			MyConsole.WriteHttpStatus(responseHeaders);
+			if (log != null)
+			{
+				log.Add(responseHeaders);
+			}
 			socket.TrySend(() =>
 			{
 				socket.Send(responseHeaders.GetBytes());
 				socket.SendFile(path);
-			});
+			}, log);
 		}
-		public static void TrySend(this Socket socket, Action sendFunction)
+		public static void TrySend(this Socket socket, Action sendFunction, Log? log = null)
 		{
 			if (!socket.IsConnected())
 			{
-				MyConsole.color = ConsoleColor.Red;
-				MyConsole.Write(" (Aborted).");
+				if (log != null)
+				{
+					log.Add("(Aborted)", LogColor.Error);
+					log.Write();
+				}
 				return;
 			}
 			try
 			{
 				sendFunction.Invoke();
 				socket.Close();
-				MyConsole.color = ConsoleColor.Green;
-				MyConsole.Write(" (Sent).");
+				if (log != null)
+				{
+					log.Add("(Sent)", LogColor.Success);
+					log.Write();
+				}
 			}
 			catch(SocketException exception)
 			{
-				MyConsole.color = ConsoleColor.Red;
-				MyConsole.Write(" (Exception: " + exception.ErrorCode + ").");
-				MyConsole.WriteLine(exception.Message);
+				if (log != null)
+				{
+					log.AddRange(LogColor.Error, "(Exception: " + exception.ErrorCode + ")");
+					log.secondRow = new LogPart(exception.Message, LogColor.Error);
+				}
 			}
 		}
 
-		public static void SendPageResponse(this Socket socket, string path, Dictionary<string, object>? parameters = null)
+		public static void SendPageResponse(this Socket socket, string path, Dictionary<string, object>? parameters = null, Log? log = null)
 		{
-			socket.SendPageResponse(path, new ResponseHeaders(), parameters);
+			socket.SendPageResponse(path, new ResponseHeaders(), parameters, log);
 		}
-		public static void SendPageResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Dictionary<string, object>? parameters = null)
+		public static void SendPageResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Dictionary<string, object>? parameters = null, Log? log = null)
 		{
 			responseHeaders.headers.Add("Content-Disposition", "inline; filename=\"" + Path.GetFileName(path) + "\"");
-			socket.SendBodyResponse(TemplateLoader.Render(path, parameters), responseHeaders);
+			socket.SendBodyResponse(TemplateLoader.Render(path, parameters, log), responseHeaders, log);
 		}
 
-		public static void SendBodyResponse(this Socket socket, string body)
+		public static void SendBodyResponse(this Socket socket, string body, Log? log = null)
 		{
-			socket.SendBodyResponse(body, new ResponseHeaders());
+			socket.SendBodyResponse(body, new ResponseHeaders(), log);
 		}
-		public static void SendBodyResponse(this Socket socket, string body, ResponseHeaders responseHeaders)
+		public static void SendBodyResponse(this Socket socket, string body, ResponseHeaders responseHeaders, Log? log = null)
 		{
 			byte[] bytes = Encoding.UTF8.GetBytes(body);
 			responseHeaders.SetHash(bytes);
 			responseHeaders.headers.Add("Content-Type", "text/html; charset=utf-8");
 			responseHeaders.headers.Add("Content-Length", bytes.Length);
 
-			MyConsole.WriteHttpStatus(responseHeaders);
+			if (log != null)
+			{
+				log.Add(responseHeaders);
+			}
 			socket.TrySend(() =>
 			{
 				socket.Send(responseHeaders.GetBytes());
 				socket.Send(bytes);
-			});
+			}, log);
 		}
 
-		public static void SendError(this Socket socket, int code, object? additionalInfo = null, Dictionary<string, object>? headerFields = null)
+		public static void SendError(this Socket socket, int code, object? additionalInfo = null, Dictionary<string, object>? headerFields = null, Log? log = null)
 		{
-			socket.SendError(code, new ResponseHeaders(code, headerFields), additionalInfo);
+			socket.SendError(code, new ResponseHeaders(code, headerFields), additionalInfo, log);
 		}
-		public static void SendError(this Socket socket, int code, ResponseHeaders responseHeaders, object? additionalInfo = null)
+		public static void SendError(this Socket socket, int code, ResponseHeaders responseHeaders, object? additionalInfo = null, Log? log = null)
 		{
 			Dictionary<string, object> parameters = new Dictionary<string, object>()
 			{
@@ -145,30 +159,32 @@ namespace WebsiteProxy
 			if (additionalInfo != null)
 			{
 				parameters.Add("errors", additionalInfo);
+				if (log != null)
+				{
+					log.secondRow = new LogPart(additionalInfo, LogColor.Error);
+				}
 			}
-			socket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages", "error.html"), responseHeaders, parameters);
-			if (additionalInfo != null)
-			{
-				MyConsole.color = ConsoleColor.Red;
-				MyConsole.WriteLine(additionalInfo);
-			}
+			socket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages", "error.html"), responseHeaders, parameters, log);
 		}
 
-		public static void SendResponse(this Socket socket, int code, Dictionary<string, object>? headerFields = null)
+		public static void SendResponse(this Socket socket, int code, Dictionary<string, object>? headerFields = null, Log? log = null)
 		{
-			socket.SendResponse(new ResponseHeaders(code, headerFields));
+			socket.SendResponse(new ResponseHeaders(code, headerFields), log);
 		}
-		public static void SendResponse(this Socket socket, ResponseHeaders responseHeaders)
+		public static void SendResponse(this Socket socket, ResponseHeaders responseHeaders, Log? log = null)
 		{
-			MyConsole.WriteHttpStatus(responseHeaders);
+			if (log != null)
+			{
+				log.Add(responseHeaders);
+			}
 			socket.TrySend(() =>
 			{
 				socket.Send(responseHeaders.GetBytes());
-			});
+			}, log);
 		}
-		public static void SendRedirectResponse(this Socket socket, int code, string path)
+		public static void SendRedirectResponse(this Socket socket, int code, string path, Log? log = null)
 		{
-			socket.SendResponse(code, new Dictionary<string, object>() { { "Location", path } });
+			socket.SendResponse(code, new Dictionary<string, object>() { { "Location", path } }, log);
 		}
 	}
 }

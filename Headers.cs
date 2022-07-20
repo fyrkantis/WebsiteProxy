@@ -21,7 +21,7 @@ namespace WebsiteProxy
 		// https://stackoverflow.com/a/13230450
 		public Dictionary<string, object> headers = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
-		public static byte[]? ReadSocketToNewline(Socket socket)
+		public static byte[]? ReadSocketToNewline(Socket socket, Log? log = null)
 		{
 			byte[] bytesBuffer = new byte[bufferSize];
 			List<byte> bytesList = new List<byte>();
@@ -30,17 +30,21 @@ namespace WebsiteProxy
 			{
 				if (!socket.IsConnected())
 				{
-					MyConsole.color = ConsoleColor.DarkYellow;
-					MyConsole.Write(" Connection lost.");
-
+					if (log != null)
+					{
+						log.Add("Connection lost", LogColor.Error);
+						log.Write();
+					}
 					return null;
 				}
 				int bufferLength = socket.Receive(bytesBuffer, 0, bufferSize, SocketFlags.None, out SocketError error);
 				if (error != SocketError.Success)
 				{
-					MyConsole.color = ConsoleColor.DarkYellow;
-					MyConsole.Write(" Header error: " + error);
-					socket.SendError(408, "Connection timed out.");
+					if (log != null)
+					{
+						log.AddRange(LogColor.Info, "Header error:", error);
+					}
+					socket.SendError(408, "Connection timed out.", log: log);
 					return null;
 				}
 				bytesList.AddRange(bytesBuffer);
@@ -53,7 +57,7 @@ namespace WebsiteProxy
 			}
 		}
 
-		public static byte[] ReadStreamToNewline(Stream stream)
+		/*public static byte[] ReadStreamToNewline(Stream stream)
 		{
 			byte[] bytesBuffer = new byte[bufferSize];
 			List<byte> bytesList = new List<byte>();
@@ -69,7 +73,7 @@ namespace WebsiteProxy
 					return bytesList.ToArray();
 				}
 			}
-		}
+		}*/
 	}
 
 	public class ResponseHeaders : Headers
@@ -166,9 +170,9 @@ namespace WebsiteProxy
 			};
 			foreach (KeyValuePair<string, object> header in allHeaders)
 			{
-				str += "\r\n" + header.Key + ": " + header.Value.ToString();
+				str += Environment.NewLine + header.Key + ": " + header.Value.ToString();
 			}
-			str += "\r\n\r\n";
+			str += Environment.NewLine + Environment.NewLine;
 			//Writes the raw response header.
 			/*MyConsole.color = ConsoleColor.DarkGray;
 			MyConsole.WriteLine(str);/**/
@@ -187,7 +191,7 @@ namespace WebsiteProxy
 		public string? url;
 		public byte[]? raw;
 
-		public static RequestHeaders? ReadFromSocket(Socket socket)
+		public static RequestHeaders? ReadFromSocket(Socket socket, Log? log = null)
 		{
 			/*SslStream sslStream = Authenticator.GetSslStream(socket);
 			if (!sslStream.CanRead)
@@ -204,14 +208,13 @@ namespace WebsiteProxy
 			while (true)
 			{
 				//byte[] bytes = ReadStreamToNewline(sslStream);
-				byte[]? bytes = ReadSocketToNewline(socket);
+				byte[]? bytes = ReadSocketToNewline(socket, log);
 				if (bytes == null)
 				{
 					string headers = Encoding.ASCII.GetString(bytesList.ToArray());
-					if (!string.IsNullOrWhiteSpace(headers))
+					if (log != null && !string.IsNullOrWhiteSpace(headers))
 					{
-						MyConsole.color = ConsoleColor.DarkGray;
-						MyConsole.WriteLine(headers);
+						log.Add(headers, LogColor.Hidden);
 					}
 					return null;
 				}
@@ -249,9 +252,12 @@ namespace WebsiteProxy
 			}
 			if (requestHeaders.method == null || requestHeaders.url == null || requestHeaders.protocol == null)
 			{
-				MyConsole.color = ConsoleColor.DarkYellow;
-				MyConsole.Write(" Header error: MissingFields");
-				socket.SendError(400, "Missing vital header fields.");
+				if (log != null)
+				{
+					log.Add("Header error: MissingFields", LogColor.Info);
+				}
+
+				socket.SendError(400, "Missing vital header fields.", log: log);
 				return null;
 			}
 			requestHeaders.raw = bytesList.ToArray();

@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
-using System.Globalization;
-using System.Net;
+﻿using System.Globalization;
 
 namespace WebsiteProxy
 {
 	public static class Util
 	{
 		public static string currentDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
+		public static string logPath = Path.Combine(currentDirectory, "log.txt");
 
 		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");
 		public static TextInfo textInfo = cultureInfo.TextInfo;
@@ -91,104 +90,6 @@ namespace WebsiteProxy
 				}
 			}
 			return missing.ToArray();
-		}
-	}
-
-	public static class MyConsole
-	{
-		public static ConsoleColor color
-		{
-			set
-			{
-#if DEBUG
-				Console.ForegroundColor = value;
-#endif
-			}
-		}
-
-		public static void SetStatusColor(bool condition)
-		{
-			if (condition)
-			{
-				color = ConsoleColor.Green;
-			}
-			else
-			{
-				color = ConsoleColor.Red;
-			}
-		}
-
-		public static void Write(object? value)
-		{
-			Debug.Write(value);
-#if DEBUG
-			Console.Write(value);
-#endif
-		}
-
-		public static void WriteLine(object? value = null)
-		{
-			Write("\r\n");
-			Write(value);
-		}
-
-		public static void WriteTimestamp(EndPoint? endPoint = null)
-		{
-			color = ConsoleColor.White;
-			WriteLine(DateTime.UtcNow.ToString(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff")));
-			color = ConsoleColor.Blue;
-			if (endPoint != null)
-			{
-				Write(" ");
-				IPEndPoint? ipEndPoint = endPoint as IPEndPoint;
-				if (ipEndPoint != null)
-				{
-					Write(ipEndPoint.Address);
-				}
-				else
-				{
-					Write("\"" + endPoint + "\"");
-				}
-			}
-		}
-
-		public static void WriteData(string name, object? data)
-		{
-			color = ConsoleColor.White;
-			WriteLine(name + ": ");
-			if (data != null)
-			{
-				color = ConsoleColor.Magenta;
-				Write(data);
-			}
-			else
-			{
-				color = ConsoleColor.DarkGray;
-				Write("null");
-			}
-		}
-
-		public static void WriteMany(params object?[] elements)
-		{
-			foreach (object? element in elements)
-			{
-				if (element != null)
-				{
-					Write(" " + element.ToString());
-				}
-			}
-		}
-
-		public static void WriteHttpStatus(ResponseHeaders responseHeaders)
-		{
-			SetStatusColor(responseHeaders.code >= 100 && responseHeaders.code < 400);
-			WriteMany(responseHeaders.code, responseHeaders.message);
-
-			if (responseHeaders.headers.ContainsKey("Location"))
-			{
-				color = ConsoleColor.Magenta;
-				WriteMany("->", responseHeaders.headers["Location"]);
-			}
 		}
 	}
 }

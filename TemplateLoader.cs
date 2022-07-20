@@ -7,7 +7,7 @@ namespace WebsiteProxy
 {
 	public static class TemplateLoader
 	{
-		public static string Render(string path, Dictionary<string, object>? parameters)
+		public static string Render(string path, Dictionary<string, object>? parameters, Log? log = null)
 		{
 			ScriptObject script = new ScriptObject(); // Used for sending arguments to html template.
 			if (parameters != null)
@@ -22,7 +22,12 @@ namespace WebsiteProxy
 			templateContext.PushGlobal(script);
 
 			Template template = Template.Parse(File.ReadAllText(path, Encoding.UTF8));
-			return template.Render(templateContext);
+			string rendered = template.Render(templateContext);
+			if (log != null)
+			{
+				log.Add("Rendered", LogColor.Info);
+			}
+			return rendered;
 		}
 
 		class MyTemplateLoader : ITemplateLoader
