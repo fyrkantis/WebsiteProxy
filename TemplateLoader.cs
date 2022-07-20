@@ -25,7 +25,7 @@ namespace WebsiteProxy
 			string rendered = template.Render(templateContext);
 			if (log != null)
 			{
-				log.Add("Rendered", LogColor.Info);
+				log.Add("Rendered", LogColor.Data);
 			}
 			return rendered;
 		}
