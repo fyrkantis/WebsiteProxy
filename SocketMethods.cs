@@ -67,9 +67,9 @@ namespace WebsiteProxy
 			responseHeaders.SetHashFile(path);
 
 			FileInfo fileInfo = new FileInfo(path);
-			responseHeaders.headers.Add("Content-Disposition", "inline; filename=\"" + fileInfo.Name + "\"");
-			responseHeaders.headers.Add("Content-Type", MimeTypes.GetMimeType(fileInfo.Extension) + "; charset=utf-8");
-			responseHeaders.headers.Add("Content-Length", fileInfo.Length);
+			responseHeaders.Add("Content-Disposition", "inline; filename=\"" + fileInfo.Name + "\"");
+			responseHeaders.Add("Content-Type", MimeTypes.GetMimeType(fileInfo.Extension) + "; charset=utf-8");
+			responseHeaders.Add("Content-Length", fileInfo.Length);
 
 			if (log != null)
 			{
@@ -118,7 +118,7 @@ namespace WebsiteProxy
 		}
 		public static void SendPageResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Dictionary<string, object>? parameters = null, Log? log = null)
 		{
-			responseHeaders.headers.Add("Content-Disposition", "inline; filename=\"" + Path.GetFileName(path) + "\"");
+			responseHeaders.Add("Content-Disposition", "inline; filename=\"" + Path.GetFileName(path) + "\"");
 			socket.SendBodyResponse(TemplateLoader.Render(path, parameters, log), responseHeaders, log);
 		}
 
@@ -130,8 +130,8 @@ namespace WebsiteProxy
 		{
 			byte[] bytes = Encoding.UTF8.GetBytes(body);
 			responseHeaders.SetHash(bytes);
-			responseHeaders.headers.Add("Content-Type", "text/html; charset=utf-8");
-			responseHeaders.headers.Add("Content-Length", bytes.Length);
+			responseHeaders.Add("Content-Type", "text/html; charset=utf-8");
+			responseHeaders.Add("Content-Length", bytes.Length);
 
 			if (log != null)
 			{

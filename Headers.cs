@@ -20,6 +20,13 @@ namespace WebsiteProxy
 		public string? protocol;
 		// https://stackoverflow.com/a/13230450
 		public Dictionary<string, object> headers = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+		public void Add(string name, object value)
+		{
+			if (!headers.ContainsKey(name))
+			{
+				headers.Add(name, value);
+			}
+		}
 
 		public static byte[]? ReadSocketToNewline(Socket socket, Log? log = null)
 		{
@@ -230,7 +237,7 @@ namespace WebsiteProxy
 				{
 					if (headerParts.Length >= 2 && !string.IsNullOrWhiteSpace(headerParts[1])) // Sets normal header row.
 					{
-						requestHeaders.headers.Add(headerParts[0].Trim().ToLower(), headerParts[1].Trim());
+						requestHeaders.Add(headerParts[0].Trim().ToLower(), headerParts[1].Trim());
 					}
 					else
 					{

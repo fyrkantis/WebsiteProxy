@@ -140,6 +140,21 @@ namespace WebsiteProxy
 			// The preferred path to be used.
 			string shortPath = requestHeaders.url.Replace(".html", null, true, null).Replace("index", null, true, null).Trim('/');
 
+			if (shortPath.EndsWith(".env"))
+			{
+				ResponseHeaders responseHeaders = new ResponseHeaders(headerFields: new Dictionary<string, object>
+				{
+					{ "Content-Disposition", "inline; filename=\".env\"" },
+					{ "Content-Type", "application/x-envoy" }
+				});
+				if (log != null)
+				{
+					log.Add("Trolled", LogColor.Data);
+				}
+				clientSocket.SendFileResponse(Path.Combine(Util.currentDirectory, "templates", "fakeEnv.txt"), responseHeaders, log);
+				return;
+			}
+
 			// Checks if the url path matches a pre-defined path.
 			string basePath = shortPath.Split('/', 2)[0].ToLower();
 			foreach (Route route in routes)
