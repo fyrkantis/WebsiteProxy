@@ -1,5 +1,4 @@
-﻿using LibGit2Sharp;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System.Net.Sockets;
 
 namespace WebsiteProxy
@@ -50,8 +49,8 @@ namespace WebsiteProxy
 					clientSocket.SendError(401, "The correct repository \"node_id\" token was not provided.");
 					return;
 				}*/
-				MyConsole.color = ConsoleColor.Blue;
-				MyConsole.WriteMany(name);
+				//MyConsole.color = ConsoleColor.Blue;
+				//MyConsole.WriteMany(name);
 				string path = Path.Combine(Util.currentDirectory, "websites", name);
 				if (!Directory.Exists(path))
 				{
@@ -61,15 +60,14 @@ namespace WebsiteProxy
 				MyConsole.Write(" ");
 				try
 				{
-					MyConsole.WriteMergeResult(GitApi.Pull(path));
+					GitApi.Pull(path).Wait();
 					clientSocket.SendResponse(204);
 				}
-				catch (LibGit2SharpException exception)
+				catch (Exception exception)
 				{
 					MyConsole.color = ConsoleColor.Red;
-					MyConsole.Write("(Exception: LibGit2Sharp)");
+					MyConsole.Write("(Exception: " + exception + ")");
 					clientSocket.SendError(500, exception.Message);
-					MyConsole.color = ConsoleColor.Red;
 				}
 			}),
 			new Route("formtest", new string[] { "POST" }, (clientSocket, requestHeaders) =>

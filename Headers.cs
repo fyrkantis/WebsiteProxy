@@ -13,7 +13,7 @@ namespace WebsiteProxy
 			{ 200, "OK" }, { 204, "No Content" },
 			{ 400, "Bad Request" }, { 401, "Unauthorized"}, { 404, "Not Found" }, { 405, "Method Not Allowed" }, { 408, "Request Timeout"}, { 415, "Unsupported Media Type" }, { 422, "Unprocessable Entity" },
 			{ 300, "Multiple Choices" }, { 303, "See Other"}, { 308, "Permanent Redirect" },
-			{ 500, "Internal Server Error" }, { 504, "Gateway Timeout"}
+			{ 500, "Internal Server Error" }, { 501, "Not Implemented" }, { 504, "Gateway Timeout"}
 		};
 
 		const int bufferSize = 1;

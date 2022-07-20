@@ -1,40 +1,29 @@
-﻿using LibGit2Sharp;
-using LibGit2Sharp.Handlers;
+﻿using System.Diagnostics;
 
 namespace WebsiteProxy
 {
 	public static class GitApi
 	{
-		static Identity identity = new Identity("fyrkantis", "david@kniberg.com");
-		static PullOptions pullOptions;
-
-		static GitApi()
+		public static async Task Pull(string path)
 		{
-			Credentials credentials = new UsernamePasswordCredentials()
+			Process process = new Process()
 			{
-				Username = Util.environment["gitUsername"],
-				Password = Util.environment["gitLoginToken"]
+				StartInfo = new ProcessStartInfo()
+				{
+					FileName = "git",
+					Arguments = "pull",
+					UseShellExecute = false,
+					RedirectStandardOutput = true,
+					CreateNoWindow = false
+				}
 			};
-			CredentialsHandler credentialsHandler = (_url, _user, _cred) => credentials;
-			FetchOptions fetchOptions = new FetchOptions()
+			process.StartInfo.WorkingDirectory = path;
+			process.Start();
+			await Task.Run(process.WaitForExit);
+			using (StreamReader stream = process.StandardOutput)
 			{
-				CredentialsProvider = credentialsHandler
-			};
-			MergeOptions mergeOptions = new MergeOptions()
-			{
-				FileConflictStrategy = CheckoutFileConflictStrategy.Theirs
-			};
-			pullOptions = new PullOptions()
-			{
-				MergeOptions = mergeOptions,
-				FetchOptions = fetchOptions
-			};
-		}
-
-		public static MergeResult Pull(string path)
-		{
-			using(Repository repository = new Repository(path)) {
-				return Commands.Pull(repository, new Signature(identity, DateTimeOffset.UtcNow), pullOptions);
+				MyConsole.color = ConsoleColor.Blue;
+				MyConsole.Write(new DirectoryInfo(path).Name + " " + stream.ReadToEnd());
 			}
 		}
 	}
