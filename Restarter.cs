@@ -6,9 +6,9 @@ namespace WebsiteProxy
 	{
 		public static TimeSpan[] restartTimes = new TimeSpan[] // The times of day that the server is restarted on.
 		{
-			new TimeSpan(6, 0, 0),
-			new TimeSpan(12, 0, 0),
-			new TimeSpan(18, 0, 0),
+			//new TimeSpan(6, 0, 0),
+			//new TimeSpan(12, 0, 0),
+			//new TimeSpan(18, 0, 0),
 			new TimeSpan(24, 0, 0)
 		};
 		public static DateTime? nextRestart = ClockTimer.NextTime(restartTimes);
