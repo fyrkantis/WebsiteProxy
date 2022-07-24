@@ -4,7 +4,7 @@
 	{
 		public static DateTime? NextTime(TimeSpan[] times)
 		{
-			return NextTime(times, DateTime.Now);
+			return NextTime(times, DateTime.UtcNow);
 		}
 		public static DateTime? NextTime(TimeSpan[] times, DateTime now)
 		{
@@ -37,7 +37,7 @@
 		// https://stackoverflow.com/a/18611442/13347795.
 		public static void DoAtTime(DateTime time, Action action)
 		{
-			DoAfterDelay(time - DateTime.Now, action);
+			DoAfterDelay(time - DateTime.UtcNow, action);
 		}
 		public static void DoAfterDelay(TimeSpan delay, Action action)
 		{

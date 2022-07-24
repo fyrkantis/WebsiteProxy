@@ -118,7 +118,7 @@ namespace WebsiteProxy
 			}
 			Log log = new Log(true);
 			log.Add("Time until next server restart:", LogColor.Info);
-			log.Add(((TimeSpan)(Restarter.nextRestart - DateTime.Now)).ToString("h':'m':'s"), LogColor.Data);
+			log.Add(((TimeSpan)(Restarter.nextRestart - DateTime.UtcNow)).ToString("h':'m':'s"), LogColor.Data);
 			log.Write();
 		}
 
