@@ -24,6 +24,8 @@ namespace WebsiteProxy
 			}
 		}
 
+		// Bug on linux: The "restarted" process runs in the background somehow and cannot be manually terminated without a kill command.
+		// https://stackoverflow.com/a/67702583/13347795.
 		public static void Restart()
 		{
 			Log.Write("Restarting...");
@@ -37,6 +39,7 @@ namespace WebsiteProxy
 #else
 					Arguments = "run -c Release",
 #endif
+					UseShellExecute = false,
 					WorkingDirectory = Util.currentDirectory
 				}
 			};
