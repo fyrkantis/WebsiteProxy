@@ -269,7 +269,7 @@ namespace WebsiteProxy
 			}
 			if (requestHeaders.method == null || requestHeaders.method.ToUpper() != "GET") // method should already not be null here.
 			{
-				clientSocket.SendError(405, "The requested file \"/" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } }, log: log);
+				clientSocket.SendError(405, "The requested file \"" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } }, log: log);
 				return true;
 			}
 			ResponseHeaders responseHeaders = new ResponseHeaders();
