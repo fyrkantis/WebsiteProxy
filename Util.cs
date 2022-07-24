@@ -10,7 +10,7 @@ namespace WebsiteProxy
 		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");
 		public static TextInfo textInfo = cultureInfo.TextInfo;
 
-		public static Dictionary<string, string> environment = ReadEnv(Path.Combine(currentDirectory, ".env"));
+		public static Dictionary<string, string> environment = ReadEnv(Path.Combine(currentDirectory, "tokens.env"));
 
 		public static Dictionary<string, object> navbarButtons
 		{
@@ -20,10 +20,16 @@ namespace WebsiteProxy
 				{
 					{ "/", "Home page" }
 				};
-				DirectoryInfo repositories = new DirectoryInfo(Path.Combine(currentDirectory, "websites"));
-				foreach (DirectoryInfo repository in repositories.GetDirectories())
+				foreach (DirectoryInfo repository in new DirectoryInfo(Path.Combine(currentDirectory, "websites")).GetDirectories())
 				{
-					buttons.Add("/" + repository.Name + "/", repository.Name);
+					if (TryGetConfigValue(repository.FullName, "name", out string name))
+					{
+						buttons.Add("/" + repository.Name + "/", name);
+					}
+					else
+					{
+						buttons.Add("/" + repository.Name + "/", repository.Name);
+					}
 				}
 				return buttons;
 			}
@@ -44,6 +50,27 @@ namespace WebsiteProxy
 				}
 			}
 			return env;
+		}
+		public static bool TryGetConfig(string repositoryPath, out Dictionary<string, string> config)
+		{
+			string configPath = Path.Combine(repositoryPath, "config.env");
+			if (!File.Exists(configPath))
+			{
+				config = new Dictionary<string, string>();
+				return false;
+			}
+			config = ReadEnv(configPath);
+			return true;
+		}
+		public static bool TryGetConfigValue(string repositoryPath, string key, out string value)
+		{
+			if (TryGetConfig(repositoryPath, out Dictionary<string, string> config) && config.TryGetValue(key, out string? nullableValue))
+			{
+				value = nullableValue;
+				return true;
+			}
+			value = "";
+			return false;
 		}
 
 		public static string GrammaticalListing(IEnumerable<object> collection, bool quotes = false)

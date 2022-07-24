@@ -51,8 +51,17 @@ namespace WebsiteProxy
 				}*/
 				//MyConsole.color = ConsoleColor.Blue;
 				//MyConsole.WriteMany(name);
-				string path = Path.Combine(Util.currentDirectory, "websites", name);
-				if (!Directory.Exists(path))
+				string? path = null;
+				foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
+				{
+					if (Util.TryGetConfigValue(directory, "repository", out string? repositoryName) && repositoryName == name)
+					{
+						path = directory;
+						break;
+					}
+				}
+
+				if (path == null)
 				{
 					clientSocket.SendError(404, "The repository \"" + name + "\" does not exist on this server.", log: log);
 					return;
@@ -140,6 +149,7 @@ namespace WebsiteProxy
 			// The preferred path to be used.
 			string shortPath = requestHeaders.url.Replace(".html", null, true, null).Replace("index", null, true, null).Trim('/');
 
+			// Sends a fake .env file when one is requested.
 			if (shortPath.EndsWith(".env"))
 			{
 				ResponseHeaders responseHeaders = new ResponseHeaders(headerFields: new Dictionary<string, object>
