@@ -35,18 +35,19 @@ namespace WebsiteProxy
 
 			Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			socket.Bind(endPoint);
+			socket.Listen(10); // Starts listening on port with a max queue of 10.
 
 			Log log = new Log();
 			log.Add("Server running...");
 #if DEBUG
 			log.Add("(Debug mode enabled)", LogColor.Success);
-			log.Add("DO NOT USE DEBUG MODE IN PRODUCTION!", LogColor.Error);
+			log.secondRow = new LogPart("DO NOT USE DEBUG MODE IN PRODUCTION!", LogColor.Error);
 #else
 			log.Add("(Debug mode disabled)", LogColor.Error);
 #endif
 			log.Write();
+			Log.WriteRestartTime();
 
-			socket.Listen(10); // Starts listening on port with a max queue of 10.
 			while (true)
 			{
 

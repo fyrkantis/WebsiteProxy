@@ -51,6 +51,7 @@ namespace WebsiteProxy
 			}
 			return env;
 		}
+
 		public static bool TryGetConfig(string repositoryPath, out Dictionary<string, string> config)
 		{
 			string configPath = Path.Combine(repositoryPath, "config.env");
