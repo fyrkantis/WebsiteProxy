@@ -150,7 +150,7 @@ namespace WebsiteProxy
 			string shortPath = requestHeaders.url.Replace(".html", null, true, null).Replace("index", null, true, null).Trim('/');
 
 			// Sends a fake .env file when one is requested.
-			if (shortPath.EndsWith(".env"))
+			if (shortPath.ToLower().EndsWith(".env"))
 			{
 				ResponseHeaders responseHeaders = new ResponseHeaders(headerFields: new Dictionary<string, object>
 				{
@@ -166,12 +166,12 @@ namespace WebsiteProxy
 			}
 
 			// Checks if the url path matches a pre-defined path.
-			string basePath = shortPath.Split('/', 2)[0].ToLower();
+			string basePath = shortPath.Split('/', 2)[0];
 			foreach (Route route in routes)
 			{
-				if (route.name == basePath)
+				if (route.name.ToLower() == basePath.ToLower())
 				{
-					string preferredPath = ("/" + shortPath).TrimEnd('/') + "/";
+					string preferredPath = "/" + route.name + "/";
 					if (requestHeaders.url != preferredPath)
 					{
 						clientSocket.SendRedirectResponse(308, preferredPath, log: log);
@@ -185,7 +185,7 @@ namespace WebsiteProxy
 							return;
 						}
 					}
-					clientSocket.SendError(405, "The route \"/" + basePath + "/\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", route.methods) } }, log: log);
+					clientSocket.SendError(405, "The route \"/" + route.name + "/\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", route.methods) } }, log: log);
 					return;
 				}
 			}
