@@ -35,7 +35,10 @@ namespace WebsiteProxy
 			if (last.value != null)
 			{
 				string? lastString = last.value.ToString();
-				if (lastString != null && !lastString.EndsWith('.'))
+				if (lastString != null
+				&& !lastString.EndsWith('.')
+				&& !lastString.EndsWith('!')
+				&& !lastString.EndsWith('?'))
 				{
 					Write('.');
 				}
