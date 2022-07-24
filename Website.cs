@@ -51,6 +51,25 @@ namespace WebsiteProxy
 				}*/
 				//MyConsole.color = ConsoleColor.Blue;
 				//MyConsole.WriteMany(name);
+				if (name == "WebsiteProxy")
+				{
+					try
+					{
+						GitApi.Pull(Util.currentDirectory, log);
+						clientSocket.SendResponse(204, log: log);
+						Restarter.Restart();
+					}
+					catch (Exception exception)
+					{
+						if (log != null)
+						{
+							log.Add("(Exception: " + exception + ")", LogColor.Error);
+						}
+						clientSocket.SendError(500, exception.Message, log: log);
+					}
+					return;
+				}
+
 				string? repositoryPath = null;
 				foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
 				{

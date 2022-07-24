@@ -14,10 +14,10 @@ namespace WebsiteProxy
 					Arguments = "pull",
 					UseShellExecute = false,
 					RedirectStandardOutput = true,
-					CreateNoWindow = false
+					CreateNoWindow = false,
+					WorkingDirectory = path
 				}
 			};
-			process.StartInfo.WorkingDirectory = path;
 			process.Start();
 			if (log != null)
 			{
