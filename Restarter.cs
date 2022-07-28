@@ -9,7 +9,7 @@ namespace WebsiteProxy
 			//new TimeSpan(6, 0, 0),
 			//new TimeSpan(12, 0, 0),
 			//new TimeSpan(18, 0, 0),
-			new TimeSpan(24, 0, 0)
+			//new TimeSpan(24, 0, 0)
 		};
 		public static DateTime? nextRestart = ClockTimer.NextTime(restartTimes);
 
@@ -39,7 +39,6 @@ namespace WebsiteProxy
 #else
 					Arguments = "run -c Release",
 #endif
-					UseShellExecute = false,
 					WorkingDirectory = Util.currentDirectory
 				}
 			};

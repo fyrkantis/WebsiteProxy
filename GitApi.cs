@@ -14,7 +14,6 @@ namespace WebsiteProxy
 					Arguments = "pull",
 					UseShellExecute = false,
 					RedirectStandardOutput = true,
-					CreateNoWindow = false,
 					WorkingDirectory = path
 				}
 			};
