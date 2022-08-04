@@ -23,7 +23,7 @@ namespace WebsiteProxy
 
 			if (!Task.WhenAll(pullTasks).Wait(5000))
 			{
-				Log.Write("Some pull tasks failed.", LogColor.Error);
+				Log.Write("Some pull processes failed.", LogColor.Error);
 			}
 			Log.Write();
 

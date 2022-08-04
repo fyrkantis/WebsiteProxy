@@ -1,5 +1,6 @@
-﻿/*using System.Net.Security;
+﻿using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -7,39 +8,41 @@ namespace WebsiteProxy
 {
 	public static class Authenticator
 	{
-		static X509Certificate2 certificate = new X509Certificate2(Util.environment["certificatePath"], Util.environment["certificatePassword"]);
-
+		// https://stackoverflow.com/a/1345402/13347795
+		static X509Certificate2 certificate = new X509Certificate2(Util.environment["certificatePath"], Util.environment["certificatePassword"], X509KeyStorageFlags.MachineKeySet);
+		
 		// https://stackoverflow.com/a/6742137/13347795
 
 		// https://stackoverflow.com/a/41864048/13347795
 		// https://docs.microsoft.com/en-us/dotnet/api/system.net.security.sslstream
-		public static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+
+		public static bool ValidateCertificate(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
 		{
+			return true;
 			if (sslPolicyErrors == SslPolicyErrors.None)
 			{
 				return true;
 			}
 
-			MyConsole.WriteTimestamp();
-			MyConsole.color = ConsoleColor.Red;
-			MyConsole.WriteLine("Certificate error:" + sslPolicyErrors);
+			Log.Write("Certificate error:" + sslPolicyErrors, LogColor.Error);
 			return false;
 		}
 
-		public static SslStream? GetSslStream(Socket socket)
+		public static SslStream GetSslStream(Socket socket, Log? log = null)
 		{
 			Stream networkStream = new NetworkStream(socket);
 			SslStream sslStream = new SslStream(networkStream, false, new RemoteCertificateValidationCallback(ValidateCertificate), null);
 
 			// https://stackoverflow.com/a/55316144/13347795
-			sslStream.AuthenticateAsServer(certificate, false, true);
+			sslStream.AuthenticateAsServer(certificate, false, System.Security.Authentication.SslProtocols.Tls12, true);
 			sslStream.ReadTimeout = 5000;
 			sslStream.WriteTimeout = 5000;
 
-			MyConsole.WriteTimestamp(socket.RemoteEndPoint);
 			string messageData = sslStream.ReadMessage();
-			MyConsole.color = ConsoleColor.DarkGray;
-			MyConsole.WriteLine(messageData);
+			if (log != null)
+			{
+				log.Add(messageData, LogColor.Data);
+			}
 
 			// Write a message to the client.
 			byte[] message = Encoding.UTF8.GetBytes("Hello from the server.<EOF>");
@@ -47,7 +50,7 @@ namespace WebsiteProxy
 			sslStream.Close();
 			socket.Close();
 
-			return null;
+			return sslStream;
 		}
 
 		static string ReadMessage(this SslStream sslStream)
@@ -79,4 +82,4 @@ namespace WebsiteProxy
 			return messageData.ToString();
 		}
 	}
-}*/
+}

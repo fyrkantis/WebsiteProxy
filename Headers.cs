@@ -64,23 +64,36 @@ namespace WebsiteProxy
 			}
 		}
 
-		/*public static byte[] ReadStreamToNewline(Stream stream)
+		public static byte[]? ReadStreamToNewline(Stream stream, Log? log = null)
 		{
 			byte[] bytesBuffer = new byte[bufferSize];
 			List<byte> bytesList = new List<byte>();
 
 			while (true)
 			{
-				int bufferLength = stream.Read(bytesBuffer, 0, bufferSize);
+				int bufferLength;
+				try
+				{
+					bufferLength = stream.Read(bytesBuffer, 0, bufferSize);
+				}
+				catch
+				{
+					if (log != null)
+					{
+						log.Add("Connection lost", LogColor.Error);
+						log.Write();
+					}
+					return null;
+				}
 				bytesList.AddRange(bytesBuffer);
 				string buffer = Encoding.ASCII.GetString(bytesBuffer);
-				MyConsole.Write(buffer);
+				//Log.Write(buffer, LogColor.Hidden);
 				if (bufferLength <= 0 || buffer[0] == '\n')
 				{
 					return bytesList.ToArray();
 				}
 			}
-		}*/
+		}
 	}
 
 	public class ResponseHeaders : Headers
@@ -200,21 +213,33 @@ namespace WebsiteProxy
 
 		public static RequestHeaders? ReadFromSocket(Socket socket, Log? log = null)
 		{
-			/*SslStream sslStream = Authenticator.GetSslStream(socket);
+			/*SslStream sslStream;
+			try
+			{
+				sslStream = Authenticator.GetSslStream(socket, log);
+			}
+			catch (Exception exception)
+			{
+				if (log != null)
+				{
+					log.secondRow = new LogPart(exception, LogColor.Error);
+					log.Write();
+				}
+			}
+			return null;
 			if (!sslStream.CanRead)
 			{
-				MyConsole.WriteTimestamp(socket.RemoteEndPoint);
-				MyConsole.color = ConsoleColor.Red;
-				MyConsole.Write(" Authentication failed.");
+				if (log != null)
+				{
+					socket.SendError(400, "Authentication failed.");
+				}
 				return null;
-			}*/
-			//MyConsole.color = ConsoleColor.DarkGray;
-			//MyConsole.WriteLine();
+			}/**/
 			RequestHeaders requestHeaders = new RequestHeaders();
 			List<byte> bytesList = new List<byte>();
 			while (true)
 			{
-				//byte[] bytes = ReadStreamToNewline(sslStream);
+				//byte[]? bytes = ReadStreamToNewline(new NetworkStream(socket));
 				byte[]? bytes = ReadSocketToNewline(socket, log);
 				if (bytes == null)
 				{
