@@ -116,9 +116,20 @@ namespace WebsiteProxy
 		{
 			socket.SendPageResponse(path, new ResponseHeaders(), parameters, log);
 		}
-		public static void SendPageResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Dictionary<string, object>? parameters = null, Log? log = null)
+		public static void SendPageResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Dictionary<string, object>? extraParameters = null, Log? log = null)
 		{
 			responseHeaders.Add("Content-Disposition", "inline; filename=\"" + Path.GetFileName(path) + "\"");
+
+			Dictionary<string, object> parameters;
+			if (extraParameters != null)
+			{
+				parameters = extraParameters;
+			}
+			else
+			{
+				parameters = new Dictionary<string, object>();
+			}
+			parameters.Add("navbarButtons", Util.navbarButtons);
 			socket.SendBodyResponse(TemplateLoader.Render(path, parameters, log), responseHeaders, log);
 		}
 
@@ -152,7 +163,6 @@ namespace WebsiteProxy
 		{
 			Dictionary<string, object> parameters = new Dictionary<string, object>()
 			{
-				{ "navbarButtons", Util.navbarButtons },
 				{ "code", code },
 				{ "message", responseHeaders.message }
 			};

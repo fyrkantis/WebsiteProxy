@@ -110,7 +110,6 @@ namespace WebsiteProxy
 				{
 					clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages", "error.html"), new Dictionary<string, object>
 					{
-						{ "navbarButtons", Util.navbarButtons },
 						{ "message", "Data received" },
 						{ "errors", data }
 					}, log);
@@ -250,7 +249,7 @@ namespace WebsiteProxy
 			// Tries to load as a html page (as template).
 			foreach (string pathAlternative in new string[] { shortPath + ".html", Path.Combine(shortPath, "index.html") })
 			{
-				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "pages", pathAlternative), ("/" + shortPath).TrimEnd('/') + "/", template: true, parameters: new Dictionary<string, object> { { "navbarButtons", Util.navbarButtons } }, log: log))
+				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "pages", pathAlternative), ("/" + shortPath).TrimEnd('/') + "/", template: true, log: log))
 				{
 					return;
 				}

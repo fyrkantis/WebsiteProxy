@@ -1,10 +1,5 @@
-﻿{{if navbarButtons}}	
-	<nav>
-		<ul>
-			{{for button in navbarButtons}}
-			<a href="{{button.key}}">
-			<li>{{button.value}}</li></a>
-			{{end}}
+﻿{{if navbarButtons}}	<nav>
+		<ul>{{for button in navbarButtons}}
+			<a href="{{button.key}}"><li>{{button.value}}</li></a>{{end}}
 		</ul>
-	</nav>
-{{end}}
+	</nav>{{else}}	<!-- Navbar buttons were not sent to this page. -->{{end}}
