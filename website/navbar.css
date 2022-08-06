@@ -1,0 +1,35 @@
+﻿nav {
+	display: flex;
+	flex-direction: row;
+
+	position: fixed;
+	top: 0px;
+
+	width: 100%;
+
+	margin: 0px;
+	padding: 0px;
+
+	box-shadow: #00000055 0px 5px 10px;
+}
+
+nav, nav div.dropdown div.contents {
+	background-color: #3b5268;
+}
+
+nav a {
+	padding: 1rem;
+
+	color: #ffffff;
+	text-decoration: none;
+
+	transition: background-color 0.2s;
+}
+
+nav > a:hover, div:hover a {
+	background-color: #00000033;
+}
+
+div:hover div a:hover{
+	background-color: #00000055;
+}

@@ -9,7 +9,7 @@ namespace WebsiteProxy
 		{
 			// Refreshes all internal git repositories.
 			List<Task> pullTasks = new List<Task>();
-			foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
+			foreach (string directory in Directory.GetDirectories(Util.repositoryDirectory))
 			{
 				Task task = new Task(() =>
 				{

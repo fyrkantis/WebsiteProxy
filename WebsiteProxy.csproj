@@ -8,22 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="assets\certificates\**" />
-    <EmbeddedResource Remove="assets\certificates\**" />
-    <None Remove="assets\certificates\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="MimeTypes" Version="2.4.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Renovo.AWSCDK.Certbot" Version="2.2.155" />
     <PackageReference Include="Scriban" Version="5.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="assets\scripts\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>

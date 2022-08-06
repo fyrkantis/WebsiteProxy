@@ -3,9 +3,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-# Contains other git repositories
-[Ww]ebsites/**
-
 # User-specific files
 *.rsuser
 *.suo

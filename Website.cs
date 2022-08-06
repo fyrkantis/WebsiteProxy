@@ -71,7 +71,7 @@ namespace WebsiteProxy
 				}
 
 				string? repositoryPath = null;
-				foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "websites")))
+				foreach (string directory in Directory.GetDirectories(Util.repositoryDirectory))
 				{
 					if (Util.TryGetConfigValue(directory, "repository", out string? repositoryName) && repositoryName == name)
 					{
@@ -108,10 +108,10 @@ namespace WebsiteProxy
 				}
 				if (data != null)
 				{
-					clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages", "error.html"), new Dictionary<string, object>
+					clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "templates", "message.html"), new Dictionary<string, object>
 					{
-						{ "message", "Data received" },
-						{ "errors", data }
+						{ "title", "Data received" },
+						{ "message", data }
 					}, log);
 				}
 				else
@@ -183,7 +183,7 @@ namespace WebsiteProxy
 				return;
 			}
 
-			// Checks if the url path matches a pre-defined path.
+			// Checks if the url path matches a pre-defined route.
 			string basePath = shortPath.Split('/', 2)[0];
 			string remainingPath = shortPath.Remove(0, basePath.Length).TrimStart('/');
 			foreach (Route route in routes)
@@ -210,7 +210,7 @@ namespace WebsiteProxy
 			}
 
 			// Checks if the url path matches a git repository.
-			foreach (DirectoryInfo directory in new DirectoryInfo(Path.Combine(Util.currentDirectory, "websites")).GetDirectories())
+			foreach (DirectoryInfo directory in new DirectoryInfo(Util.repositoryDirectory).GetDirectories())
 			{
 				if (directory.Name.ToLower() == basePath.ToLower())
 				{
@@ -241,7 +241,7 @@ namespace WebsiteProxy
 			}
 
 			// Tries to load as an asset file.
-			if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "assets", shortPath), "/" + shortPath, log: log))
+			if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "website", shortPath), "/" + shortPath, log: log))
 			{
 				return;
 			}
@@ -249,7 +249,7 @@ namespace WebsiteProxy
 			// Tries to load as a html page (as template).
 			foreach (string pathAlternative in new string[] { shortPath + ".html", Path.Combine(shortPath, "index.html") })
 			{
-				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "pages", pathAlternative), ("/" + shortPath).TrimEnd('/') + "/", template: true, log: log))
+				if (clientSocket.TryLoad(requestHeaders, Path.Combine(Util.currentDirectory, "website", pathAlternative), ("/" + shortPath).TrimEnd('/') + "/", template: true, log: log))
 				{
 					return;
 				}

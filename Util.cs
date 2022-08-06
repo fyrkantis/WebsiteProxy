@@ -11,26 +11,34 @@ namespace WebsiteProxy
 		public static TextInfo textInfo = cultureInfo.TextInfo;
 
 		public static Dictionary<string, string> environment = ReadEnv(Path.Combine(currentDirectory, "tokens.env"));
+		public static Dictionary<string, string> config = ReadEnv(Path.Combine(currentDirectory, "config.env"));
+		public static string repositoryDirectory = Path.Combine(currentDirectory, config["repositoryDirectory"]);
 
 		public static Dictionary<string, object> navbarButtons
 		{
 			get
 			{
-				Dictionary<string, object> buttons = new Dictionary<string, object>()
+				Dictionary<string, object> repositories = new Dictionary<string, object>()
 				{
-					{ "/", "Home page" }
+					{ "/", "Repositories" }
 				};
-				foreach (DirectoryInfo repository in new DirectoryInfo(Path.Combine(currentDirectory, "websites")).GetDirectories())
+				foreach (DirectoryInfo repository in new DirectoryInfo(repositoryDirectory).GetDirectories())
 				{
 					if (TryGetConfigValue(repository.FullName, "name", out string name))
 					{
-						buttons.Add("/" + repository.Name + "/", name);
+						repositories.Add("/" + repository.Name + "/", name);
 					}
 					else
 					{
-						buttons.Add("/" + repository.Name + "/", repository.Name);
+						repositories.Add("/" + repository.Name + "/", repository.Name);
 					}
 				}
+				Dictionary<string, object> buttons = new Dictionary<string, object>()
+				{
+					{ "/", "Home page" },
+					{ "/repositories", repositories },
+					{ "/ha/youDumbFuck/", "Some crazy third page" }
+				};
 				return buttons;
 			}
 		}

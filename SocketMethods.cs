@@ -118,7 +118,16 @@ namespace WebsiteProxy
 		}
 		public static void SendPageResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Dictionary<string, object>? extraParameters = null, Log? log = null)
 		{
-			responseHeaders.Add("Content-Disposition", "inline; filename=\"" + Path.GetFileName(path) + "\"");
+			string filename = Path.GetFileName(path);
+			DirectoryInfo? parent = Directory.GetParent(path);
+			if (filename == "index.html" && parent != null && parent.FullName != Path.Combine(Util.currentDirectory, "website"))
+			{
+				responseHeaders.Add("Content-Disposition", "inline; filename=\"" + parent.Name + ".html\"");
+			}
+			else
+			{
+				responseHeaders.Add("Content-Disposition", "inline; filename=\"" + filename + "\"");
+			}
 
 			Dictionary<string, object> parameters;
 			if (extraParameters != null)
@@ -164,17 +173,17 @@ namespace WebsiteProxy
 			Dictionary<string, object> parameters = new Dictionary<string, object>()
 			{
 				{ "code", code },
-				{ "message", responseHeaders.message }
+				{ "name", responseHeaders.message }
 			};
 			if (additionalInfo != null)
 			{
-				parameters.Add("errors", additionalInfo);
+				parameters.Add("message", additionalInfo);
 				if (log != null)
 				{
 					log.secondRow = new LogPart(additionalInfo, LogColor.Error);
 				}
 			}
-			socket.SendPageResponse(Path.Combine(Util.currentDirectory, "pages", "error.html"), responseHeaders, parameters, log);
+			socket.SendPageResponse(Path.Combine(Util.currentDirectory, "templates", "error.html"), responseHeaders, parameters, log);
 		}
 
 		public static void SendResponse(this Socket socket, int code, Dictionary<string, object>? headerFields = null, Log? log = null)
