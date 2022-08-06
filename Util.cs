@@ -5,14 +5,13 @@ namespace WebsiteProxy
 	public static class Util
 	{
 		public static string currentDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
+		public static string repositoryDirectory = Path.Combine(currentDirectory, "website", "repositories");
 		public static string logPath = Path.Combine(currentDirectory, "log.txt");
+
+		public static Dictionary<string, string> environment = ReadEnv(Path.Combine(currentDirectory, "tokens.env"));
 
 		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");
 		public static TextInfo textInfo = cultureInfo.TextInfo;
-
-		public static Dictionary<string, string> environment = ReadEnv(Path.Combine(currentDirectory, "tokens.env"));
-		public static Dictionary<string, string> config = ReadEnv(Path.Combine(currentDirectory, "config.env"));
-		public static string repositoryDirectory = Path.Combine(currentDirectory, config["repositoryDirectory"]);
 
 		public static Dictionary<string, object> navbarButtons
 		{
