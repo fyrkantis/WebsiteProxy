@@ -61,7 +61,8 @@ namespace WebsiteProxy
 			Console.ForegroundColor = (ConsoleColor)LogColor.Default;
 			if (value != null)
 			{
-				File.AppendAllText(Util.logPath, value.ToString());
+				DirectoryInfo directory = Directory.CreateDirectory(Path.Combine(Util.currentDirectory, "logs"));
+				File.AppendAllText(Path.Combine(directory.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + "log.txt"), value.ToString());
 			}
 		}
 		static void WriteLine(object? value = null, LogColor color = LogColor.Default)
@@ -93,7 +94,7 @@ namespace WebsiteProxy
 		{
 			if (timestamp)
 			{
-				Add(DateTime.UtcNow.ToString(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff")));
+				Add(DateTime.UtcNow.ToString(DateTime.UtcNow.ToString("HH:mm:ss.fff")));
 			}
 
 			if (endPoint != null)

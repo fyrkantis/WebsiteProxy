@@ -6,7 +6,6 @@ namespace WebsiteProxy
 	{
 		public static string currentDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
 		public static string repositoryDirectory = Path.Combine(currentDirectory, "website", "repositories");
-		public static string logPath = Path.Combine(currentDirectory, "log.txt");
 
 		public static Dictionary<string, string> environment = ReadEnv(Path.Combine(currentDirectory, "tokens.env"));
 

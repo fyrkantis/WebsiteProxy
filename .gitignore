@@ -11,7 +11,7 @@
 *.sln.docstates
 *.env
 !config.env
-log.txt
+[Ll]ogs/**
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
