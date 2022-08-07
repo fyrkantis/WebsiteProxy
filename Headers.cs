@@ -131,18 +131,18 @@ namespace WebsiteProxy
 			}
 		}
 
-		public ResponseHeaders(int headerCode = 200, Dictionary<string, object>? headerFields = null)
+		public ResponseHeaders(int code = 200, Dictionary<string, object>? headers = null)
 		{
 			protocol = "HTTP/1.0";
-			code = headerCode;
-			headers.Add("Content-Language", "en");
-			headers.Add("Server", "Dave's Fantastic Server (" + RuntimeInformation.RuntimeIdentifier + ")");
+			this.code = code;
+			this.headers["Content-Language"] = "en";
+			this.headers["Server"] = "Dave's Fantastic Server (" + RuntimeInformation.RuntimeIdentifier + ")";
 
-			if (headerFields != null)
+			if (headers != null)
 			{
-				foreach (KeyValuePair<string, object> headerField in headerFields)
+				foreach (KeyValuePair<string, object> headerField in headers)
 				{
-					headers.Add(headerField.Key, headerField.Value);
+					this.headers[headerField.Key] = headerField.Value;
 				}
 			}
 		}
@@ -157,7 +157,7 @@ namespace WebsiteProxy
 		{
 			using (MD5 md5 = MD5.Create())
 			{
-				headers.Add("Content-MD5", Convert.ToHexString(md5.ComputeHash(bytes)));
+				headers["Content-MD5"] = Convert.ToHexString(md5.ComputeHash(bytes));
 			}
 			
 		}
@@ -167,7 +167,7 @@ namespace WebsiteProxy
 			using (MD5 md5 = MD5.Create())
 			using (FileStream stream = File.OpenRead(path))
 			{
-				headers.Add("Content-MD5", Convert.ToHexString(md5.ComputeHash(stream)));
+				headers["Content-MD5"] = Convert.ToHexString(md5.ComputeHash(stream));
 			}
 		}
 
@@ -176,7 +176,7 @@ namespace WebsiteProxy
 			if (currentUrl != preferredUrl)
 			{
 				code = 300;
-				headers.Add("Location", preferredUrl);
+				headers["Location"] = preferredUrl;
 			}
 		}
 

@@ -170,7 +170,7 @@ namespace WebsiteProxy
 			// Sends a fake .env file when one is requested.
 			if (shortPath.ToLower().EndsWith(".env"))
 			{
-				ResponseHeaders responseHeaders = new ResponseHeaders(headerFields: new Dictionary<string, object>
+				ResponseHeaders responseHeaders = new ResponseHeaders(headers: new Dictionary<string, object>
 				{
 					{ "Content-Disposition", "inline; filename=\".env\"" },
 					{ "Content-Type", "application/x-envoy" }
@@ -216,17 +216,21 @@ namespace WebsiteProxy
 				if (shortPath.ToLower().StartsWith(shortName))
 				{
 					string remainingPath = shortPath.Remove(0, shortName.Length).TrimStart('/');
-					string websitePath;
-					if (Util.TryGetConfigValue(directory.FullName, "folder", out string websiteFolder))
+					string websitePath = directory.FullName;
+					Dictionary<string, object> headers = new Dictionary<string, object>();
+					if (Util.TryGetConfig(directory.FullName, out Dictionary<string, string> config))
 					{
-						websitePath = Path.Combine(directory.FullName, websiteFolder);
-					}
-					else
-					{
-						websitePath = directory.FullName;
+						if (config.TryGetValue("folder", out string? websiteFolder))
+						{
+							websitePath = Path.Combine(directory.FullName, websiteFolder);
+						}
+						if (config.TryGetValue("language", out string? language))
+						{
+							headers.Add("Content-Language", language);
+						}
 					}
 					// Tries to load as an asset file.
-					if (clientSocket.TryLoad(requestHeaders, Path.Combine(websitePath, remainingPath), directoryName + remainingPath, log: log))
+					if (clientSocket.TryLoad(requestHeaders, Path.Combine(websitePath, remainingPath), preferredPath: directoryName + remainingPath, headers: headers, log: log))
 					{
 						return;
 					}
@@ -234,14 +238,14 @@ namespace WebsiteProxy
 					// Tries to load as a html page (but not as template).
 					foreach (string pathAlternative in new string[] { remainingPath + ".html", Path.Combine(remainingPath, "index.html") })
 					{
-						if (clientSocket.TryLoad(requestHeaders, Path.Combine(websitePath, pathAlternative), (directoryName + remainingPath).TrimEnd('/') + "/", log: log))
+						if (clientSocket.TryLoad(requestHeaders, Path.Combine(websitePath, pathAlternative), preferredPath: (directoryName + remainingPath).TrimEnd('/') + "/", headers: headers, log: log))
 						{
 							return;
 						}
 					}
 
 					// Looks for custom 404 page.
-					if (Util.TryGetConfigValue(directory.FullName, "404", out string errorPage) && clientSocket.TryLoad(requestHeaders, Path.Combine(directory.FullName, errorPage), log: log))
+					if (Util.TryGetConfigValue(directory.FullName, "404", out string errorPage) && clientSocket.TryLoad(requestHeaders, Path.Combine(directory.FullName, errorPage), headers: headers, log: log))
 					{
 						return;
 					}
@@ -271,7 +275,7 @@ namespace WebsiteProxy
 		}
 
 		// Returns true if the page or an http error was sent, or false otherwise.
-		public static bool TryLoad(this Socket clientSocket, RequestHeaders requestHeaders, string path, string? preferredPath = null, bool template = false, Dictionary<string, object>? parameters = null, Log? log = null)
+		public static bool TryLoad(this Socket clientSocket, RequestHeaders requestHeaders, string path, string? preferredPath = null, bool template = false, Dictionary<string, object>? parameters = null, Dictionary<string, object>? headers = null, Log? log = null)
 		{
 			if (!File.Exists(path))
 			{
@@ -282,7 +286,7 @@ namespace WebsiteProxy
 				clientSocket.SendError(405, "The requested file \"" + requestHeaders.url + "\" is static and can only be loaded with GET requests.", new Dictionary<string, object>() { { "Allow", "GET" } }, log: log);
 				return true;
 			}
-			ResponseHeaders responseHeaders = new ResponseHeaders();
+			ResponseHeaders responseHeaders = new ResponseHeaders(headers: headers);
 			if (preferredPath != null && requestHeaders.url != preferredPath)
 			{
 				clientSocket.SendRedirectResponse(308, preferredPath, log: log);
