@@ -1,8 +1,11 @@
-﻿{{if navbarButtons}}	<nav>{{for button in navbarButtons}}{{if button.value | object.typeof == "object"}}
-		<div class="dropdown">{{for row in button.value}}
-				<a href="{{button.key + row.key}}">{{row.value}}{{if for.index == 0}}<div class="arrow"></div></a>
-			<div class="contents">{{else}}</a>{{end}}{{end}}
-			</div>
-		</div>{{else}}
-		<a href="{{button.key}}">{{button.value}}</a>{{end}}{{end}}
+﻿{{if navbarButtons}}	<nav>
+		<ul>{{for button in navbarButtons}}
+			{{if button.value | object.typeof == "object"}}<li class="dropdown">{{for row in button.value limit:1}}
+				<a href="{{button.key + row.key}}">{{row.value}}</a><span class="arrow"></span>{{end}}
+				<ul class="contents">
+					{{for row in button.value offset:1}}
+					<li><a href="{{button.key + row.key}}">{{row.value}}</a></li>{{end}}
+				</ul>
+			{{else}}<li><a href="{{button.key}}">{{button.value}}</a>{{end}}</li>{{end}}
+		</ul>
 	</nav>{{else}}	<!-- Navbar buttons were not sent to this page. -->{{end}}

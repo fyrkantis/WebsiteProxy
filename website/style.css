@@ -1,9 +1,8 @@
 ﻿* {
-	--space: calc(0.5rem + 5vw);
+	--space: 4vw/*calc(0.5rem + 5vw)*/;
+	--quarterSpace: calc(var(--space) / 4);
 	--eigthSpace: calc(var(--space) / 8);
-
 	box-sizing: border-box;
-
 	font-family: Helvetica, Arial, sans-serif;
 }
 
@@ -21,7 +20,7 @@ body {
 }
 
 main {
-	overflow: auto; /* Prevents float elements from overflowing. */
+	overflow: hidden; /* Prevents float elements from overflowing. */
 
 	margin: var(--space);
 	padding: var(--space);
@@ -31,25 +30,31 @@ main {
 	border-radius: 1rem;
 }
 
+/* Image holders. */
+
+img {
+	width: 100%;
+}
+
+figure {
+	text-align: center;
+}
+
 aside {
 	float: right;
-	margin: 2rem;
-	padding: 2rem;
+
+	max-width: 100%;
+
+	margin: calc(var(--quarterSpace));
+	padding: calc(var(--quarterSpace));
 
 	background-color: #32a6c3;
 	color: #ffffff;
 }
 
-aside img {
+aside > * {
+	margin: 0px !important;
 	max-width: 20rem;
-}
-
-img {
-	max-width: 100%;
-}
-
-figure {
-	text-align: center;
 }
 
 /* Text styles */
@@ -71,43 +76,59 @@ p, hr, h1, h2, h3, h4, h5, h6, form, fieldset, input, label, canvas, figure {
 
 /* Dropdown */
 
-div.dropdown {
+.dropdown {
 	position: relative;
+	color: #ffffff;
 
 	margin: 0px;
 	padding: 0px;
 
-	list-style: none;
+	width: max-content;
 }
 
-div.dropdown * {
-	display: block;
+.dropdown > *, .dropdown .contents > * {
+	display: inline-block;
 }
 
-div.dropdown div.contents {
+.dropdown .contents {
+	display: flex;
+	flex-direction: column;
+
 	position: absolute;
 
+	left: 0;
+	top: 100%;
+
 	width: 100%;
+
+	margin: 0px !important;
+	padding: 0px !important;
+
 	transform: scaleY(0);
 	transform-origin: top;
 
-	overflow: hidden;
+	background-color: #32a6c3;
+	list-style-type: none;
+
 	transition: transform 0.2s;
 }
 
 /* https://stackoverflow.com/a/17260048/13347795 */
-div.dropdown:hover div.contents {
+.dropdown:hover .contents {
 	transform: scaleY(1);
 }
 
 /* https://css-tricks.com/snippets/css/css-triangle/ */
-div.dropdown div.arrow {
+.dropdown .arrow {
 	display: inline-block;
+	
+	vertical-align: middle;
 
 	width: 0px;
 	height: 0px;
 
-	margin-left: 0.5em;
+	padding: 0px !important;
+	margin: 0.5em !important;
 
 	border-right: calc(0.7em * 0.866) solid;
 	border-top: 0.35em solid transparent;
@@ -116,6 +137,21 @@ div.dropdown div.arrow {
 	transition: transform 0.2s;
 }
 
-div.dropdown:hover div.arrow {
+.dropdown:hover .arrow {
 	transform: rotate(-90deg)
+}
+
+nav .dropdown:hover .contents > :hover {
+	background-color: #00000055;
+}
+
+/* Default dropdown styling. */
+
+.dropdown.default {
+	background-color: #32a6c3;
+}
+
+.dropdown.default > *, .dropdown.default .contents > * {
+	margin: 0px;
+	padding: 0.5em;
 }

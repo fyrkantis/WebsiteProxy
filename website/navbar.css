@@ -1,35 +1,56 @@
 ﻿nav {
-	display: flex;
-	flex-direction: row;
-
 	position: fixed;
 	top: 0px;
 
 	width: 100%;
 
-	margin: 0px;
-	padding: 0px;
-
 	box-shadow: #00000055 0px 5px 10px;
 }
 
-nav, nav div.dropdown div.contents {
+nav, nav * {
+	margin: 0px;
+	padding: 0px;
+}
+
+nav, nav .dropdown .contents {
 	background-color: #3b5268;
 }
 
-nav a {
-	padding: 1rem;
-
+nav a, nav .arrow {
 	color: #ffffff;
 	text-decoration: none;
+}
 
+nav ul {
+	display: flex;
+	flex-direction: row;
+
+	width: max-content;
+}
+
+nav a {
+	display: block;
+
+	padding: 1rem;
+}
+
+ul > :hover, nav .dropdown:hover .contents > * {
+	background-color: #00000033;
 	transition: background-color 0.2s;
 }
 
-nav > a:hover, div:hover a {
-	background-color: #00000033;
+/* Makes lists look less like lists. */
+
+nav ul {
+	list-style-type: none;
 }
 
-div:hover div a:hover{
+nav li {
+	display: inline-block;
+}
+
+/* Styles dropdowns. */
+
+nav .dropdown .contents > :hover {
 	background-color: #00000055;
 }
