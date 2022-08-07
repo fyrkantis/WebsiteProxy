@@ -89,12 +89,13 @@ namespace WebsiteProxy
 	{
 		public List<LogPart> parts = new List<LogPart>();
 		public LogPart? secondRow;
+		public DateTime startTime = DateTime.UtcNow;
 
 		public Log(bool timestamp = false, EndPoint? endPoint = null)
 		{
 			if (timestamp)
 			{
-				Add(DateTime.UtcNow.ToString(DateTime.UtcNow.ToString("HH:mm:ss.fff")));
+				Add(startTime.ToString(DateTime.UtcNow.ToString("HH:mm:ss.fff")));
 			}
 
 			if (endPoint != null)
@@ -120,18 +121,22 @@ namespace WebsiteProxy
 			Log log = new Log(true);
 			log.Add("Time until next server restart:", LogColor.Info);
 			log.Add(((TimeSpan)(Restarter.nextRestart - DateTime.UtcNow)).ToString("h':'m':'s"), LogColor.Data);
-			log.Write();
+			log.Write(writeTimeTaken: false);
 		}
 
 		public static void Write(object? value = null, LogColor color = LogColor.Default)
 		{
 			Log log = new Log();
 			log.Add(value, color);
-			log.Write();
+			log.Write(writeTimeTaken: false);
 		}
 
-		public void Write()
+		public void Write(bool writeTimeTaken = true)
 		{
+			if (writeTimeTaken)
+			{
+				Add((DateTime.UtcNow - startTime).Milliseconds + " ms", LogColor.Hidden);
+			}
 			Logger.backlog.Add(this);
 		}
 

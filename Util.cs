@@ -5,7 +5,6 @@ namespace WebsiteProxy
 	public static class Util
 	{
 		public static string currentDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
-		public static string repositoryDirectory = Path.Combine(currentDirectory, "website", "repositories");
 
 		public static Dictionary<string, string> environment = ReadEnv(Path.Combine(currentDirectory, "tokens.env"));
 
@@ -20,7 +19,7 @@ namespace WebsiteProxy
 				{
 					{ "/", "Repositories" }
 				};
-				foreach (DirectoryInfo repository in new DirectoryInfo(repositoryDirectory).GetDirectories())
+				foreach (DirectoryInfo repository in new DirectoryInfo(Path.Combine(Util.currentDirectory, "repositories")).GetDirectories())
 				{
 					if (TryGetConfigValue(repository.FullName, "name", out string name))
 					{

@@ -9,7 +9,7 @@ namespace WebsiteProxy
 		{
 			// Refreshes all internal git repositories.
 			List<Task> pullTasks = new List<Task>();
-			foreach (string directory in Directory.GetDirectories(Util.repositoryDirectory))
+			foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "repositories")))
 			{
 				Task task = new Task(() =>
 				{
@@ -45,7 +45,7 @@ namespace WebsiteProxy
 #else
 			log.Add("(Debug mode disabled)", LogColor.Error);
 #endif
-			log.Write();
+			log.Write(writeTimeTaken: false);
 			Log.WriteRestartTime();
 
 			while (true)

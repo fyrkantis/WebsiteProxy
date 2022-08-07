@@ -12,6 +12,7 @@
 *.env
 !config.env
 [Ll]ogs/**
+[Rr]epositories/**
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

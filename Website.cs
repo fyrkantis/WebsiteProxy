@@ -7,7 +7,7 @@ namespace WebsiteProxy
 	{
 		static Route[] routes =
 		{
-			new Route("github", new string[] { "POST" }, (clientSocket, requestHeaders, path, log) =>
+			new Route("/github/", new string[] { "POST" }, (clientSocket, requestHeaders, path, log) =>
 			{
 				string? data = clientSocket.ReadPost(requestHeaders);
 				if (!requestHeaders.headers.ContainsKey("Content-Type"))
@@ -71,7 +71,7 @@ namespace WebsiteProxy
 				}
 
 				string? repositoryPath = null;
-				foreach (string directory in Directory.GetDirectories(Util.repositoryDirectory))
+				foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "repositories")))
 				{
 					if (Util.TryGetConfigValue(directory, "repository", out string? repositoryName) && repositoryName == name)
 					{
@@ -99,7 +99,7 @@ namespace WebsiteProxy
 					clientSocket.SendError(500, exception.Message, log: log);
 				}
 			}),
-			new Route("formtest", new string[] { "POST" }, (clientSocket, requestHeaders, path, log) =>
+			new Route("/formtest/", new string[] { "POST" }, (clientSocket, requestHeaders, path, log) =>
 			{
 				string? data = clientSocket.ReadPost(requestHeaders);
 				if (log != null)
@@ -119,7 +119,7 @@ namespace WebsiteProxy
 					clientSocket.SendError(400, "No data was received.", log: log);
 				}
 			}),
-			new Route("test", new string[] { "GET" }, (clientSocket, requestHeaders, path, log) =>
+			new Route("/test/", new string[] { "GET" }, (clientSocket, requestHeaders, path, log) =>
 			{
 				clientSocket.SendBodyResponse(";)", log);
 			})
@@ -184,16 +184,15 @@ namespace WebsiteProxy
 			}
 
 			// Checks if the url path matches a pre-defined route.
-			string basePath = shortPath.Split('/', 2)[0];
-			string remainingPath = shortPath.Remove(0, basePath.Length).TrimStart('/');
 			foreach (Route route in routes)
 			{
-				if (route.name.ToLower() == basePath.ToLower())
+				string shortName = route.name.Trim('/').ToLower();
+				if (shortPath.ToLower().StartsWith(shortName))
 				{
-					string preferredPath = ("/" + route.name).TrimEnd('/') + "/";
-					if (requestHeaders.url != preferredPath)
+					string remainingPath = shortPath.Remove(0, shortName.Length).TrimStart('/');
+					if (!requestHeaders.url.StartsWith(route.name))
 					{
-						clientSocket.SendRedirectResponse(308, preferredPath, log: log);
+						clientSocket.SendRedirectResponse(308, route.name + remainingPath, log: log);
 						return;
 					}
 					foreach (string method in route.methods)
@@ -204,18 +203,30 @@ namespace WebsiteProxy
 							return;
 						}
 					}
-					clientSocket.SendError(405, "The route \"/" + route.name + "/\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", route.methods) } }, log: log);
+					clientSocket.SendError(405, "The route \"" + route.name + "\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", route.methods) } }, log: log);
 					return;
 				}
 			}
 
 			// Checks if the url path matches a git repository.
-			foreach (DirectoryInfo directory in new DirectoryInfo(Util.repositoryDirectory).GetDirectories())
+			foreach (DirectoryInfo directory in new DirectoryInfo(Path.Combine(Util.currentDirectory, "repositories")).GetDirectories())
 			{
-				if (directory.Name.ToLower() == basePath.ToLower())
+				string directoryName = "/repositories/" + directory.Name + "/";
+				string shortName = directoryName.Trim('/').ToLower();
+				if (shortPath.ToLower().StartsWith(shortName))
 				{
+					string remainingPath = shortPath.Remove(0, shortName.Length).TrimStart('/');
+					string websitePath;
+					if (Util.TryGetConfigValue(directory.FullName, "folder", out string websiteFolder))
+					{
+						websitePath = Path.Combine(directory.FullName, websiteFolder);
+					}
+					else
+					{
+						websitePath = directory.FullName;
+					}
 					// Tries to load as an asset file.
-					if (clientSocket.TryLoad(requestHeaders, Path.Combine(directory.FullName, remainingPath), "/" + directory.Name + "/" + remainingPath, log: log))
+					if (clientSocket.TryLoad(requestHeaders, Path.Combine(websitePath, remainingPath), directoryName + remainingPath, log: log))
 					{
 						return;
 					}
@@ -223,19 +234,19 @@ namespace WebsiteProxy
 					// Tries to load as a html page (but not as template).
 					foreach (string pathAlternative in new string[] { remainingPath + ".html", Path.Combine(remainingPath, "index.html") })
 					{
-						if (clientSocket.TryLoad(requestHeaders, Path.Combine(directory.FullName, pathAlternative), ("/" + directory.Name + "/" + remainingPath).TrimEnd('/') + "/", log: log))
+						if (clientSocket.TryLoad(requestHeaders, Path.Combine(websitePath, pathAlternative), (directoryName + remainingPath).TrimEnd('/') + "/", log: log))
 						{
 							return;
 						}
 					}
 
 					// Looks for custom 404 page.
-					if (clientSocket.TryLoad(requestHeaders, Path.Combine(directory.FullName, "404.html"), log: log))
+					if (Util.TryGetConfigValue(directory.FullName, "404", out string errorPage) && clientSocket.TryLoad(requestHeaders, Path.Combine(directory.FullName, errorPage), log: log))
 					{
 						return;
 					}
 					// Gives up and sends own 404 page.
-					clientSocket.SendError(404, "The requested file \"" + remainingPath + "\" could not be found in /" + directory.Name + "/.", log: log);
+					clientSocket.SendError(404, "The requested file \"" + remainingPath + "\" could not be found in " + directoryName + ".", log: log);
 					return;
 				}
 			}
@@ -255,7 +266,7 @@ namespace WebsiteProxy
 				}
 			}
 
-			clientSocket.SendError(404, "The requested file \"/" + shortPath + "\" could not be found.", log: log);
+			clientSocket.SendError(404, "The requested file \"" + requestHeaders.url + "\" could not be found.", log: log);
 			//context.Send(418, "I'm a teapot", "And I can't be asked to brew coffee.");
 		}
 
