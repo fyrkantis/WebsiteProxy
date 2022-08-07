@@ -28,7 +28,7 @@ namespace WebsiteProxy
 		// https://stackoverflow.com/a/67702583/13347795.
 		public static void Restart()
 		{
-			Log.Write("Restarting...");
+			Log.Write("Restarting..."); // TODO: Leave delay to give log time to be written.
 			Process process = new Process()
 			{
 				StartInfo = new ProcessStartInfo()
