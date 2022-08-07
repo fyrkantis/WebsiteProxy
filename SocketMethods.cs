@@ -107,7 +107,7 @@ namespace WebsiteProxy
 				if (log != null)
 				{
 					log.AddRange(LogColor.Error, "(Exception: " + exception.ErrorCode + ")");
-					log.secondRow = new LogPart(exception.Message, LogColor.Error);
+					log.AddRow(exception.Message, LogColor.Error);
 				}
 			}
 		}
@@ -180,7 +180,7 @@ namespace WebsiteProxy
 				parameters.Add("message", additionalInfo);
 				if (log != null)
 				{
-					log.secondRow = new LogPart(additionalInfo, LogColor.Error);
+					log.AddRow(additionalInfo, LogColor.Error);
 				}
 			}
 			socket.SendPageResponse(Path.Combine(Util.currentDirectory, "templates", "error.html"), responseHeaders, parameters, log);

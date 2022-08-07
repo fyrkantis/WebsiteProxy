@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
+using Palmer;
 
 namespace WebsiteProxy
 {
@@ -21,31 +22,47 @@ namespace WebsiteProxy
 
 		static void Write(Log log)
 		{
-			WriteLine();
+			DateTime finishTime = DateTime.UtcNow;
+
 			// https://stackoverflow.com/a/7476203/13347795
 			LogPart last = log.parts.Last();
 			foreach (LogPart logPart in log.parts)
 			{
-				Write(logPart);
 				if (!logPart.Equals(last))
 				{
+					Write(logPart);
 					Write(' ');
 				}
-			}
-			if (last.value != null)
-			{
-				string? lastString = last.value.ToString();
-				if (lastString != null
-				&& !lastString.EndsWith('.')
-				&& !lastString.EndsWith('!')
-				&& !lastString.EndsWith('?'))
+				else
 				{
-					Write('.');
+					char? lastEnding = null;
+					string? lastString = null;
+					if (logPart.value != null)
+					{
+						lastEnding = '.';
+						lastString = logPart.value.ToString();
+					}
+					if (lastString != null && (lastString.EndsWith('.') || lastString.EndsWith('!') || lastString.EndsWith('?')))
+					{
+						lastEnding = lastString[lastString.Length - 1];
+						Write(lastString.Substring(0, lastString.Length - 1), logPart.color);
+					}
+					else
+					{
+						Write(logPart);
+					}
+					Write(lastEnding);
 				}
 			}
-			if (log.secondRow != null)
+			if (log.writeTimeTaken)
 			{
-				WriteLine(log.secondRow);
+				Write(' ');
+				Write((finishTime - log.startTime).Milliseconds + " ms", LogColor.Hidden);
+			}
+			WriteLine();
+			if (log.nextRow != null)
+			{
+				Write(log.nextRow);
 			}
 		}
 		static void Write(LogPart logPart)
@@ -62,19 +79,26 @@ namespace WebsiteProxy
 			if (value != null)
 			{
 				DirectoryInfo directory = Directory.CreateDirectory(Path.Combine(Util.currentDirectory, "logs"));
-				File.AppendAllText(Path.Combine(directory.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + "log.txt"), value.ToString());
+
+				// Throws IOException sometimes.
+				// https://stackoverflow.com/a/24859893/13347795
+				Retry.On<IOException>().For(TimeSpan.FromSeconds(1)).With(context =>
+				{
+					File.AppendAllText(Path.Combine(directory.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + "log.txt"), value.ToString());
+				});
 			}
+		}
+
+		static void WriteLine(LogPart logPart)
+		{
+			WriteLine(logPart.value, logPart.color);
 		}
 		static void WriteLine(object? value = null, LogColor color = LogColor.Default)
 		{
-			Write(Environment.NewLine, color);
 			Write(value, color);
+			Write(Environment.NewLine, color);
 		}
-		static void WriteLine(LogPart logPart)
-		{
-			Write(Environment.NewLine, logPart.color);
-			Write(logPart.value, logPart.color);
-		}
+		
 
 		static Task writer = Task.Run(() =>
 		{
@@ -88,11 +112,13 @@ namespace WebsiteProxy
 	public class Log // TODO: Optimize how references are handled.
 	{
 		public List<LogPart> parts = new List<LogPart>();
-		public LogPart? secondRow;
+		public Log? nextRow = null;
 		public DateTime startTime = DateTime.UtcNow;
+		public bool writeTimeTaken;
 
-		public Log(bool timestamp = false, EndPoint? endPoint = null)
+		public Log(bool timestamp = false, EndPoint? endPoint = null, bool writeTimeTaken = true)
 		{
+			this.writeTimeTaken = writeTimeTaken;
 			if (timestamp)
 			{
 				Add(startTime.ToString(DateTime.UtcNow.ToString("HH:mm:ss.fff")));
@@ -118,25 +144,21 @@ namespace WebsiteProxy
 			{
 				return;
 			}
-			Log log = new Log(true);
+			Log log = new Log(timestamp: true, writeTimeTaken: false);
 			log.Add("Time until next server restart:", LogColor.Info);
 			log.Add(((TimeSpan)(Restarter.nextRestart - DateTime.UtcNow)).ToString("h':'m':'s"), LogColor.Data);
-			log.Write(writeTimeTaken: false);
+			log.Write();
 		}
 
 		public static void Write(object? value = null, LogColor color = LogColor.Default)
 		{
-			Log log = new Log();
+			Log log = new Log(writeTimeTaken: false);
 			log.Add(value, color);
-			log.Write(writeTimeTaken: false);
+			log.Write();
 		}
 
-		public void Write(bool writeTimeTaken = true)
+		public void Write()
 		{
-			if (writeTimeTaken)
-			{
-				Add((DateTime.UtcNow - startTime).Milliseconds + " ms", LogColor.Hidden);
-			}
 			Logger.backlog.Add(this);
 		}
 
@@ -162,6 +184,19 @@ namespace WebsiteProxy
 			if (responseHeaders.headers.ContainsKey("Location"))
 			{
 				AddRange(LogColor.Data, "->", responseHeaders.headers["Location"]);
+			}
+		}
+
+		public void AddRow(object? value, LogColor color = LogColor.Default, bool writeTimeTaken = false)
+		{
+			if (nextRow == null)
+			{
+				nextRow = new Log(writeTimeTaken: writeTimeTaken);
+				nextRow.Add(value, color);
+			}
+			else
+			{
+				nextRow.AddRow(value, color, writeTimeTaken);
 			}
 		}
 

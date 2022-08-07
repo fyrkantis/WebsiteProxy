@@ -37,15 +37,15 @@ namespace WebsiteProxy
 			socket.Bind(endPoint);
 			socket.Listen(10); // Starts listening on port with a max queue of 10.
 
-			Log log = new Log();
+			Log log = new Log(writeTimeTaken: false);
 			log.Add("Server running...");
 #if DEBUG
 			log.Add("(Debug mode enabled)", LogColor.Success);
-			log.secondRow = new LogPart("DO NOT USE DEBUG MODE IN PRODUCTION!", LogColor.Error);
+			log.AddRow("DO NOT USE DEBUG MODE IN PRODUCTION!", LogColor.Error);
 #else
 			log.Add("(Debug mode disabled)", LogColor.Error);
 #endif
-			log.Write(writeTimeTaken: false);
+			log.Write();
 			Log.WriteRestartTime();
 
 			while (true)

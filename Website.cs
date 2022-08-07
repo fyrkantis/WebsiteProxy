@@ -104,7 +104,7 @@ namespace WebsiteProxy
 				string? data = clientSocket.ReadPost(requestHeaders);
 				if (log != null)
 				{
-					log.secondRow = new LogPart(data, LogColor.Data);
+					log.AddRow(data, LogColor.Data);
 				}
 				if (data != null)
 				{
