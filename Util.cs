@@ -56,6 +56,11 @@ namespace WebsiteProxy
 			}
 			return env;
 		}
+		
+		public static bool IsInCurrentDirectory(string path)
+		{
+			return true;
+		}
 
 		public static bool TryGetConfig(string repositoryPath, out Dictionary<string, string> config)
 		{

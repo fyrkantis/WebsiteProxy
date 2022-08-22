@@ -7,6 +7,25 @@ namespace WebsiteProxy
 	{
 		public static void Main()
 		{
+			/*foreach (string test in new string[]
+			{
+				@"c:\dir1\",
+				@"c:\dir1\dir2",
+				@"c:\temp\..\dir1\dir2",
+				@"c:\dir1\..\windows\system32\",
+				Path.Combine(Util.currentDirectory, "website"),
+				Path.Combine(Util.currentDirectory, ".env"),
+				Util.currentDirectory,
+				@"\test\test"
+			})
+			{
+				Log testLog = new Log(writeTimeTaken: false);
+				testLog.Add(test + ":");
+				bool status = Util.IsInCurrentDirectory(test);
+				testLog.Add(status, status);
+				testLog.Write();
+			}*/
+
 			// Refreshes all internal git repositories.
 			List<Task> pullTasks = new List<Task>();
 			foreach (string directory in Directory.GetDirectories(Path.Combine(Util.currentDirectory, "repositories")))

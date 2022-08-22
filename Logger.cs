@@ -22,7 +22,7 @@ namespace WebsiteProxy
 
 		static void Write(Log log)
 		{
-			DateTime finishTime = DateTime.UtcNow;
+			DateTime writingTime = DateTime.UtcNow;
 
 			// https://stackoverflow.com/a/7476203/13347795
 			LogPart last = log.parts.Last();
@@ -57,7 +57,14 @@ namespace WebsiteProxy
 			if (log.writeTimeTaken)
 			{
 				Write(' ');
-				Write((finishTime - log.startTime).Milliseconds + " ms", LogColor.Hidden);
+				if (log.finishTime != null)
+				{
+					Write(((DateTime)log.finishTime - log.startTime).Milliseconds + " ms", LogColor.Hidden);
+				}
+				else
+				{
+					Write((writingTime - log.startTime).Milliseconds + " ms*", LogColor.Hidden);
+				}
 			}
 			WriteLine();
 			if (log.nextRow != null)
@@ -114,6 +121,7 @@ namespace WebsiteProxy
 		public List<LogPart> parts = new List<LogPart>();
 		public Log? nextRow = null;
 		public DateTime startTime = DateTime.UtcNow;
+		public DateTime? finishTime;
 		public bool writeTimeTaken;
 
 		public Log(bool timestamp = false, EndPoint? endPoint = null, bool writeTimeTaken = true)
@@ -159,6 +167,7 @@ namespace WebsiteProxy
 
 		public void Write()
 		{
+			finishTime = DateTime.UtcNow;
 			Logger.backlog.Add(this);
 		}
 

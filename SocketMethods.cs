@@ -64,8 +64,17 @@ namespace WebsiteProxy
 		}
 		public static void SendFileResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Log? log = null)
 		{
-			responseHeaders.SetHashFile(path);
+			if (!Util.IsInCurrentDirectory(path))
+			{
+				if (log != null)
+				{
+					log.AddRow("Forbidden path: " + path, LogColor.Error);
+				}
+				socket.SendError(403, "Attempted to access a file outside of working directory.", log: log);
+				return;
+			}
 
+			responseHeaders.SetHashFile(path);
 			FileInfo fileInfo = new FileInfo(path);
 			responseHeaders.Add("Content-Disposition", "inline; filename=\"" + fileInfo.Name + "\"");
 			responseHeaders.Add("Content-Type", MimeTypes.GetMimeType(fileInfo.Extension) + "; charset=utf-8");
@@ -118,6 +127,15 @@ namespace WebsiteProxy
 		}
 		public static void SendPageResponse(this Socket socket, string path, ResponseHeaders responseHeaders, Dictionary<string, object>? extraParameters = null, Log? log = null)
 		{
+			if (!Util.IsInCurrentDirectory(path))
+			{
+				if (log != null)
+				{
+					log.AddRow("Forbidden path: " + path, LogColor.Error);
+				}
+				socket.SendError(403, "Attempted to access a file outside of working directory.", log: log);
+				return;
+			}
 			string filename = Path.GetFileName(path);
 			DirectoryInfo? parent = Directory.GetParent(path);
 			if (filename == "index.html" && parent != null && parent.FullName != Path.Combine(Util.currentDirectory, "website"))
