@@ -219,9 +219,9 @@ namespace WebsiteProxy
 				socket.Send(responseHeaders.GetBytes());
 			}, log);
 		}
-		public static void SendRedirectResponse(this Socket socket, int code, string path, Log? log = null)
+		public static void SendRedirectResponse(this Socket socket, int code, string route, Log? log = null)
 		{
-			socket.SendResponse(code, new Dictionary<string, object>() { { "Location", path } }, log);
+			socket.SendResponse(code, new Dictionary<string, object>() { { "Location", route } }, log);
 		}
 	}
 }

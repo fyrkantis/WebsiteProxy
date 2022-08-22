@@ -7,7 +7,7 @@ namespace WebsiteProxy
 	{
 		static Route[] routes =
 		{
-			new Route("/github/", new string[] { "POST" }, (clientSocket, requestHeaders, path, log) =>
+			new Route("/github/", new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
 			{
 				string? data = clientSocket.ReadPost(requestHeaders);
 				if (!requestHeaders.headers.ContainsKey("Content-Type"))
@@ -99,20 +99,20 @@ namespace WebsiteProxy
 					clientSocket.SendError(500, exception.Message, log: log);
 				}
 			}),
-			new Route("/repositories/", null, (clientSocket, requestHeaders, path, log) =>
+			new Route("/repositories/", null, (clientSocket, requestHeaders, route, log) =>
 			{
 				// Tries to load a regular page in the /website/repositories/ folder.
-				if (clientSocket.TrySendUnknown(requestHeaders, "repositories/" + path, log: log))
+				if (clientSocket.TrySendUnknown(requestHeaders, "repositories/" + route, log: log))
 				{
 					return;
 				}
 
-				// Checks if the url path matches a git repository.
+				// Tries to load a git repository page.
 				foreach (DirectoryInfo directory in new DirectoryInfo(Path.Combine(Util.currentDirectory, "repositories")).GetDirectories())
 				{
 					string shortName = directory.Name.Trim('/').ToLower();
-					string remainingPath = path.Remove(0, directory.Name.Length).Trim('/', '\\');
-					if (path.ToLower().StartsWith(shortName))
+					string remainingPath = route.Remove(0, directory.Name.Length).Trim('/', '\\');
+					if (route.ToLower().StartsWith(shortName))
 					{
 						string websitePath = directory.Name;
 						Dictionary<string, object> headers = new Dictionary<string, object>();
@@ -128,7 +128,7 @@ namespace WebsiteProxy
 							}
 						}
 						// Tries to load file or page.
-						if (clientSocket.TrySendUnknown(requestHeaders, Path.Combine(websitePath, remainingPath), directory: "repositories", route: "repositories/" + path, enableTemplate: false, log: log))
+						if (clientSocket.TrySendUnknown(requestHeaders, Path.Combine(websitePath, remainingPath), directory: "repositories", route: "repositories/" + route, enableTemplate: false, log: log))
 						{
 							return;
 						}
@@ -143,9 +143,9 @@ namespace WebsiteProxy
 						return;
 					}
 				}
-				clientSocket.SendError(404, "The requested repository \"" + path + "\" could not be found.");
+				clientSocket.SendError(404, "The requested repository \"" + route + "\" could not be found.");
 			}),
-			new Route("/formtest/", new string[] { "POST" }, (clientSocket, requestHeaders, path, log) =>
+			new Route("/formtest/", new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
 			{
 				string? data = clientSocket.ReadPost(requestHeaders);
 				if (log != null)
@@ -165,7 +165,7 @@ namespace WebsiteProxy
 					clientSocket.SendError(400, "No data was received.", log: log);
 				}
 			}),
-			new Route("/test/", new string[] { "GET" }, (clientSocket, requestHeaders, path, log) =>
+			new Route("/test/", new string[] { "GET" }, (clientSocket, requestHeaders, route, log) =>
 			{
 				clientSocket.SendBodyResponse(";)", log);
 			})
@@ -187,6 +187,8 @@ namespace WebsiteProxy
 
 		public static async void HandleConnection(Socket clientSocket, RequestHeaders requestHeaders, Log? log = null)
 		{
+			// Path vs route explanation: path is for the server directory and route is the request url, ok?
+
 			if (log != null)
 			{
 				log.AddRange(LogColor.Info, requestHeaders.method, requestHeaders.url);
@@ -210,11 +212,11 @@ namespace WebsiteProxy
 				return;
 			}
 
-			// The preferred path to be used.
-			string shortPath = requestHeaders.url.Replace(".html", null, true, null).Replace("index", null, true, null).Trim('/');
+			// The preferred route to be used.
+			string route = requestHeaders.url.Replace(".html", null, true, null).Replace("index", null, true, null).Trim('/');
 
 			// Sends a fake .env file when one is requested.
-			if (shortPath.ToLower().EndsWith(".env"))
+			if (route.ToLower().EndsWith(".env"))
 			{
 				ResponseHeaders responseHeaders = new ResponseHeaders(headers: new Dictionary<string, object>
 				{
@@ -229,39 +231,39 @@ namespace WebsiteProxy
 				return;
 			}
 
-			// Checks if the url path matches a pre-defined route.
-			foreach (Route route in routes)
+			// Checks if the route matches a pre-defined route.
+			foreach (Route routeAlternative in routes)
 			{
-				string shortName = route.name.Trim('/').ToLower();
-				if (shortPath.ToLower().StartsWith(shortName))
+				string baseRoute = routeAlternative.name.Trim('/').ToLower();
+				if (route.ToLower().StartsWith(baseRoute))
 				{
-					string remainingPath = shortPath.Remove(0, shortName.Length).TrimStart('/');
-					if (!requestHeaders.url.StartsWith(route.name))
+					string subRoute = route.Remove(0, baseRoute.Length).TrimStart('/');
+					if (!requestHeaders.url.StartsWith(routeAlternative.name))
 					{
-						clientSocket.SendRedirectResponse(308, route.name + remainingPath, log: log);
+						clientSocket.SendRedirectResponse(308, routeAlternative.name + subRoute, log: log);
 						return;
 					}
-					if (route.methods == null) // Means that the route doesn't care about which method is used.
+					if (routeAlternative.methods == null) // Means that the route doesn't care about which method is used.
 					{
-						route.action.Invoke(clientSocket, requestHeaders, remainingPath, log);
+						routeAlternative.action.Invoke(clientSocket, requestHeaders, subRoute, log);
 					}
 					else
 					{
-						foreach (string method in route.methods)
+						foreach (string method in routeAlternative.methods)
 						{
 							if (requestHeaders.method.ToUpper() == method)
 							{
-								route.action.Invoke(clientSocket, requestHeaders, remainingPath, log);
+								routeAlternative.action.Invoke(clientSocket, requestHeaders, subRoute, log);
 								return;
 							}
 						}
-						clientSocket.SendError(405, "The route \"" + route.name + "\" only accepts " + Util.GrammaticalListing(route.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", route.methods) } }, log: log);
+						clientSocket.SendError(405, "The route \"" + routeAlternative.name + "\" only accepts " + Util.GrammaticalListing(routeAlternative.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", routeAlternative.methods) } }, log: log);
 					}
 					return;
 				}
 			}
 
-			if (!clientSocket.TrySendUnknown(requestHeaders, shortPath, log: log))
+			if (!clientSocket.TrySendUnknown(requestHeaders, route, log: log))
 			{
 				clientSocket.SendError(404, "The requested page \"" + requestHeaders.url + "\" could not be found.", log: log);
 				//context.Send(418, "I'm a teapot", "And I can't be asked to brew coffee.");
@@ -284,18 +286,18 @@ namespace WebsiteProxy
 			}
 
 			// Tries to load as a html page (as template).
-			foreach (string pathAlternative in new string[] { path + ".html", Path.Combine(path, "index.html") })
+			foreach (string routeAlternative in new string[] { path + ".html", Path.Combine(path, "index.html") })
 			{
 				if (enableTemplate)
 				{
-					if (clientSocket.TrySendTemplate(requestHeaders, Path.Combine(Util.currentDirectory, directory, pathAlternative.Trim('/', '\\')), ("/" + routeName).TrimEnd('/') + "/", parameters, log: log))
+					if (clientSocket.TrySendTemplate(requestHeaders, Path.Combine(Util.currentDirectory, directory, routeAlternative.Trim('/', '\\')), ("/" + routeName).TrimEnd('/') + "/", parameters, log: log))
 					{
 						return true;
 					}
 				}
 				else
 				{
-					if (clientSocket.TrySendFile(requestHeaders, Path.Combine(Util.currentDirectory, directory, pathAlternative.Trim('/', '\\')), ("/" + routeName).TrimEnd('/') + "/", log: log))
+					if (clientSocket.TrySendFile(requestHeaders, Path.Combine(Util.currentDirectory, directory, routeAlternative.Trim('/', '\\')), ("/" + routeName).TrimEnd('/') + "/", log: log))
 					{
 						return true;
 					}
