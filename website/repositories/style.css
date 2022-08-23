@@ -1,1 +1,3 @@
-﻿
+﻿ul.panel.repository {
+	flex-direction: column;
+}

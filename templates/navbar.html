@@ -1,8 +1,8 @@
 ﻿{{if navbarButtons}}	<nav>
-		<ul>{{for button in navbarButtons}}
+		<ul class="panel">{{for button in navbarButtons}}
 			{{if button.value | object.typeof == "object"}}<li class="dropdown">{{for row in button.value limit:1}}
-				<a href="{{button.key + row.key}}">{{row.value}}</a><span class="arrow"></span>{{end}}
-				<ul class="contents">
+				<a href="{{button.key + row.key}}">{{row.value}} <span class="arrow"></span></a>{{end}}
+				<ul class="contents panel">
 					{{for row in button.value offset:1}}
 					<li><a href="{{button.key + row.key}}">{{row.value}}</a></li>{{end}}
 				</ul>

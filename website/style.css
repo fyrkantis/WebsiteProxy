@@ -1,7 +1,9 @@
 ﻿* {
-	--space: 4vw/*calc(0.5rem + 5vw)*/;
+	--space: 4vw /*calc(0.5rem + 5vw)*/;
+	--halfSpace: calc(var(--space) / 2);
 	--quarterSpace: calc(var(--space) / 4);
 	--eigthSpace: calc(var(--space) / 8);
+	--doubleSpace: calc(var(--space) * 2);
 	box-sizing: border-box;
 	font-family: Helvetica, Arial, sans-serif;
 }
@@ -23,6 +25,7 @@ main {
 	overflow: hidden; /* Prevents float elements from overflowing. */
 
 	margin: var(--space);
+	margin-top: var(--doubleSpace);
 	padding: var(--space);
 
 	background-color: #ffffff;
@@ -67,6 +70,9 @@ h4 {font-size: calc(33rem / 25);}
 h5 {font-size: calc(27rem / 25);}
 p, hr, h6 {font-size: 1rem;}
 legend {font-size: 1.5rem;}
+:first-child {
+	margin-top: 0px;
+}
 
 p, hr, h1, h2, h3, h4, h5, h6, form, fieldset, input, label, canvas, figure {
 	margin: 0px;
@@ -74,24 +80,69 @@ p, hr, h1, h2, h3, h4, h5, h6, form, fieldset, input, label, canvas, figure {
 	margin-bottom: 0.5em;
 }
 
-/* Dropdown */
+/* General styled list */
 
-.dropdown {
-	position: relative;
-	color: #ffffff;
+ul.panel {
+	display: flex;
 
 	margin: 0px;
 	padding: 0px;
 
-	width: max-content;
+	background-color: #32a6c3;
+
+	list-style-type: none;
 }
 
-.dropdown > *, .dropdown .contents > * {
+ul.panel * {
+	color: #ffffff;
+}
+
+ul.panel li > :not(ul) {
+	display: block;
+	padding: var(--quarterSpace);
+	text-decoration: none;
+}
+
+ul.panel li a {
+	width: 100%;
+	height: 100%;
+}
+
+/* Link highlighting */
+
+ul.panel > :hover, nav .dropdown:hover .contents > * {
+	background-color: #00000033;
+	/*text-decoration: underline;*/
+
+	transition: background-color 0.2s;
+}
+
+/* Darker! */
+nav .dropdown:hover .contents > :hover {
+	background-color: #00000055;
+}
+
+/* Dropdown */
+
+.dropdown {
+	position: relative;
+
+	width: max-content;
+
+	background-color: #32a6c3;
+	color: #ffffff;
+
+	user-select: none;
+}
+
+.dropdown > * {
 	display: inline-block;
+
+	padding: var(--quarterSpace);
+	margin: 0px;
 }
 
 .dropdown .contents {
-	display: flex;
 	flex-direction: column;
 
 	position: absolute;
@@ -101,14 +152,8 @@ p, hr, h1, h2, h3, h4, h5, h6, form, fieldset, input, label, canvas, figure {
 
 	width: 100%;
 
-	margin: 0px !important;
-	padding: 0px !important;
-
 	transform: scaleY(0);
 	transform-origin: top;
-
-	background-color: #32a6c3;
-	list-style-type: none;
 
 	transition: transform 0.2s;
 }
@@ -127,31 +172,16 @@ p, hr, h1, h2, h3, h4, h5, h6, form, fieldset, input, label, canvas, figure {
 	width: 0px;
 	height: 0px;
 
-	padding: 0px !important;
-	margin: 0.5em !important;
+	padding: 0px;
+	margin: 0.36em;
 
 	border-right: calc(0.7em * 0.866) solid;
-	border-top: 0.35em solid transparent;
-	border-bottom: 0.35em solid transparent;
+	border-top: 0.25em solid transparent;
+	border-bottom: 0.25em solid transparent;
 
 	transition: transform 0.2s;
 }
 
 .dropdown:hover .arrow {
 	transform: rotate(-90deg)
-}
-
-nav .dropdown:hover .contents > :hover {
-	background-color: #00000055;
-}
-
-/* Default dropdown styling. */
-
-.dropdown.default {
-	background-color: #32a6c3;
-}
-
-.dropdown.default > *, .dropdown.default .contents > * {
-	margin: 0px;
-	padding: 0.5em;
 }

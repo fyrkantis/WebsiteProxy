@@ -7,50 +7,14 @@
 	box-shadow: #00000055 0px 5px 10px;
 }
 
-nav, nav * {
-	margin: 0px;
-	padding: 0px;
-}
-
-nav, nav .dropdown .contents {
-	background-color: #3b5268;
-}
-
-nav a, nav .arrow {
+nav * {
 	color: #ffffff;
-	text-decoration: none;
 }
 
-nav ul {
-	display: flex;
-	flex-direction: row;
-
-	width: max-content;
+nav .dropdown {
+	background-color: #00000000;
 }
 
-nav a {
-	display: block;
-
-	padding: 1rem;
-}
-
-ul > :hover, nav .dropdown:hover .contents > * {
-	background-color: #00000033;
-	transition: background-color 0.2s;
-}
-
-/* Makes lists look less like lists. */
-
-nav ul {
-	list-style-type: none;
-}
-
-nav li {
-	display: inline-block;
-}
-
-/* Styles dropdowns. */
-
-nav .dropdown .contents > :hover {
-	background-color: #00000055;
+nav ul.panel, nav .dropdown .contents {
+	background-color: #3b5268;
 }

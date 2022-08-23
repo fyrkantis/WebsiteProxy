@@ -101,8 +101,28 @@ namespace WebsiteProxy
 			}),
 			new Route("/repositories/", null, (clientSocket, requestHeaders, route, log) =>
 			{
+				Dictionary<string, object> parameters = new Dictionary<string, object>();
+				if (string.IsNullOrWhiteSpace(route))
+				{
+					List<Dictionary<string, object>> repositories = new List<Dictionary<string, object>>();
+					foreach (DirectoryInfo directory in new DirectoryInfo(Path.Combine(Util.currentDirectory, "repositories")).GetDirectories())
+					{
+						Dictionary<string, object> repository = new Dictionary<string, object>();
+						repository.Add("route", directory.Name);
+						if (Util.TryGetConfig(directory.FullName, out Dictionary<string, string> config))
+						{
+							if (config.TryGetValue("name", out string? name))
+							{
+								repository.Add("name", name);
+							}
+						}
+						repositories.Add(repository);
+					}
+					parameters.Add("repositories", repositories);
+				}
+
 				// Tries to load a regular page in the /website/repositories/ folder.
-				if (clientSocket.TrySendUnknown(requestHeaders, "repositories/" + route, log: log))
+				if (clientSocket.TrySendUnknown(requestHeaders, "repositories/" + route, parameters: parameters, log: log))
 				{
 					return;
 				}

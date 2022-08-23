@@ -2,6 +2,7 @@
 <html>
 <head>
 {{include "meta.html"}}
+	<link rel="stylesheet" href="/repositories/style.css">
 
 	<title>Dave's fantastic website™</title>
 </head>
@@ -12,6 +13,12 @@
 			<h1>Repositories&trade;</h1>
 			<hr>
 			<p>They're also great!</p>
+			<ul class="repository panel">{{for repository in repositories}}
+			<li><a href="/repositories/{{repository.route}}">
+				<h2>{{if repository.name}}{{repository.name}}{{end}}</h2>
+				
+			</a></li>{{end}}
+			</ul>
 		</article>
 	</main>
 </body>
