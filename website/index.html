@@ -1,12 +1,12 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-	{{include "meta.html"}}
+	{{include "/templates/meta.html"}}
 
 	<title>Dave's fantastic website™</title>
 </head>
 <body>
-{{include "navbar.html"}}
+{{include "/templates/navbar.html"}}
 	<main>
 		<aside>
 			<figure>
@@ -21,10 +21,10 @@
 			<div class="dropdown">
 				<p>Dropdown <span class="arrow"></span></p>
 				<ul class="contents panel">
-					<li><p>Thing 1</p></li>
-					<li><p>Thing 2</p></li>
-					<li><p>Thing 3</p></li>
-					<li><p>Thing 4</p></li>
+					<li><a>Thing 1</a></li>
+					<li><a>Thing 2</a></li>
+					<li><a>Thing 3</a></li>
+					<li><a>Thing 4</a></li>
 				</ul>
 			</div>
 			<form action="/formtest/" method="POST">

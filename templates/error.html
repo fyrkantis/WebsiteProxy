@@ -1,12 +1,12 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-{{include "meta.html"}}
+{{include "/templates/meta.html"}}
 
 	<title>Dave's fantastic website™</title>
 </head>
 <body>
-{{include "navbar.html"}}
+{{include "/templates/navbar.html"}}
 	<main>
 		<article>
 			<h1>{{if name}}{{if code}}{{code}}: {{end}}{{name}}{{else}}{{if code}}{{code}}{{else}}Unknown{{end}} Error{{end}}&trade;</h1>

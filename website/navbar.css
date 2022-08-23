@@ -11,7 +11,7 @@ nav .dropdown {
 	background-color: #00000000;
 }
 
-nav ul.panel, nav .dropdown .contents {
+nav, nav ul.panel li, nav .dropdown .contents li {
 	background-color: #3b5268;
 }
 

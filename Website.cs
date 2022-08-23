@@ -116,6 +116,12 @@ namespace WebsiteProxy
 								repository.Add("name", name);
 							}
 						}
+						// Looks for readme.
+						foreach (FileInfo readme in directory.GetFiles("README*", SearchOption.TopDirectoryOnly))
+						{
+							repository.Add("readme", Path.Combine("repositories", directory.Name, readme.Name));
+							break;
+						}
 						repositories.Add(repository);
 					}
 					parameters.Add("repositories", repositories);

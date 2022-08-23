@@ -88,14 +88,16 @@ ul.panel {
 	margin: 0px;
 	padding: 0px;
 
-	background-color: #32a6c3;
-
 	list-style-type: none;
 }
 
 ul.panel * {
 	color: #ffffff;
 	margin: 0px;
+}
+
+ul.panel li {
+	background-color: #32a6c3;
 }
 
 ul.panel li > :not(ul) {
@@ -111,7 +113,7 @@ ul.panel li a {
 
 /* Link highlighting */
 
-ul.panel > :hover, nav .dropdown:hover .contents > * {
+ul.panel a:hover, nav .dropdown:hover a {
 	background-color: #00000033;
 	/*text-decoration: underline;*/
 
@@ -119,7 +121,7 @@ ul.panel > :hover, nav .dropdown:hover .contents > * {
 }
 
 /* Darker! */
-nav .dropdown:hover .contents > :hover {
+nav .dropdown:hover .contents a:hover {
 	background-color: #00000055;
 }
 

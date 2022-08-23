@@ -1,3 +1,7 @@
 ﻿ul.panel.repository {
 	flex-direction: column;
 }
+
+ul.panel.repository li {
+	margin-bottom: 0.5em;
+}

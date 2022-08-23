@@ -1,6 +1,7 @@
 ﻿using Scriban;
 using Scriban.Parsing;
 using Scriban.Runtime;
+using CommonMark;
 using System.Text;
 
 namespace WebsiteProxy
@@ -34,11 +35,24 @@ namespace WebsiteProxy
 		{
 			public string GetPath(TemplateContext context, SourceSpan callerSpan, string templateName) // TODO: Adapt for relative paths.
 			{
-				return Path.Combine(Util.currentDirectory, "templates", templateName.TrimStart('/', '\\'));
+				return Path.Combine(Util.currentDirectory, templateName.TrimStart('/', '\\'));
 			}
 
 			public string Load(TemplateContext context, SourceSpan callerSpan, string templatePath)
 			{
+				Log.Write(templatePath);
+				if (!Util.IsInCurrentDirectory(templatePath))
+				{
+					throw new ArgumentException("The file \"" + templatePath + "\" is not in the working directory.");
+				}
+				if (!File.Exists(templatePath))
+				{
+					throw new ArgumentException("The file \"" + templatePath + "\" does not exist.");
+				}
+				if (new string[] { ".txt", ".md" }.Contains(new FileInfo(templatePath).Extension.ToLower()))
+				{
+					return CommonMarkConverter.Convert(File.ReadAllText(templatePath, Encoding.UTF8));
+				}
 				return File.ReadAllText(templatePath, Encoding.UTF8);
 			}
 
