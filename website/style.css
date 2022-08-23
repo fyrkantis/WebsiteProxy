@@ -95,11 +95,12 @@ ul.panel {
 
 ul.panel * {
 	color: #ffffff;
+	margin: 0px;
 }
 
 ul.panel li > :not(ul) {
 	display: block;
-	padding: var(--quarterSpace);
+	padding: 0.5em;
 	text-decoration: none;
 }
 
@@ -135,10 +136,10 @@ nav .dropdown:hover .contents > :hover {
 	user-select: none;
 }
 
-.dropdown > * {
+.dropdown > :not(ul) {
 	display: inline-block;
 
-	padding: var(--quarterSpace);
+	padding: 0.5em;
 	margin: 0px;
 }
 

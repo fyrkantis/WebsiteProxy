@@ -7,14 +7,14 @@
 	box-shadow: #00000055 0px 5px 10px;
 }
 
-nav * {
-	color: #ffffff;
-}
-
 nav .dropdown {
 	background-color: #00000000;
 }
 
 nav ul.panel, nav .dropdown .contents {
 	background-color: #3b5268;
+}
+
+nav ul.panel li > :not(ul), nav .dropdown > :not(ul) {
+	padding: var(--quarterSpace);
 }
