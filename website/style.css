@@ -166,12 +166,23 @@ nav .dropdown:hover .contents a:hover {
 	transform: scaleY(1);
 }
 
-/* https://css-tricks.com/snippets/css/css-triangle/ */
 .dropdown .arrow {
-	display: inline-block;
-	
-	vertical-align: middle;
+	transition: transform 0.2s;
+}
 
+.dropdown:hover .arrow {
+	transform: rotate(-90deg)
+}
+
+/* Some CSS icons. */
+
+.arrow, .burger {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+/* https://css-tricks.com/snippets/css/css-triangle/ */
+.arrow {
 	width: 0px;
 	height: 0px;
 
@@ -181,10 +192,45 @@ nav .dropdown:hover .contents a:hover {
 	border-right: calc(0.7em * 0.866) solid;
 	border-top: 0.25em solid transparent;
 	border-bottom: 0.25em solid transparent;
-
-	transition: transform 0.2s;
 }
 
-.dropdown:hover .arrow {
-	transform: rotate(-90deg)
+/* https://www.w3schools.com/howto/howto_css_menu_icon.asp */
+.burger > * {
+	display: block;
+
+	width: 1.75em;
+	height: 0.2em;
+
+	margin: 0.5em;
+	padding: 0px;
+	
+	background-color: #ffffff;
+	border-radius: 0.1em;
 }
+
+/* Adjusts page to device. */
+
+.mobile {
+	display: none !important;
+}
+
+/* https://stackoverflow.com/a/50302305/13347795 */
+/*@media (pointer:none), (pointer:coarse) {
+	.desktop {
+		display: none !important;
+	}
+
+	.mobile {
+		display: initial !important;
+	}
+
+	nav {
+		width: min-content !important;
+
+		top: 0.5em !important;
+		left: 0.5em !important;
+
+		border-radius: 0.5em;
+		box-shadow: #00000055 5px 5px 10px !important;
+	}
+}*/

@@ -18,3 +18,12 @@ nav, nav ul.panel li, nav .dropdown .contents li {
 nav ul.panel li > :not(ul), nav .dropdown > :not(ul) {
 	padding: var(--quarterSpace);
 }
+
+/*nav .burger {
+	display: block;
+}
+
+nav .mobile:hover {
+	width: 100vw;
+	height: 100vh;
+}*/
