@@ -40,7 +40,6 @@ namespace WebsiteProxy
 
 			public string Load(TemplateContext context, SourceSpan callerSpan, string templatePath)
 			{
-				Log.Write(templatePath);
 				if (!Util.IsInCurrentDirectory(templatePath))
 				{
 					throw new ArgumentException("The file \"" + templatePath + "\" is not in the working directory.");
