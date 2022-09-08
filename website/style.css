@@ -4,6 +4,9 @@
 	--quarterSpace: calc(var(--space) / 4);
 	--eigthSpace: calc(var(--space) / 8);
 	--doubleSpace: calc(var(--space) * 2);
+
+	--navTransition: 0.5s;
+
 	box-sizing: border-box;
 	font-family: Helvetica, Arial, sans-serif;
 }
@@ -195,42 +198,99 @@ nav .dropdown:hover .contents a:hover {
 }
 
 /* https://www.w3schools.com/howto/howto_css_menu_icon.asp */
-.burger > * {
+.burger {
+	width: min-content;
+	height: min-content;
+
+	padding: 0.5em;
+}
+
+.burger * {
 	display: block;
 
 	width: 1.75em;
 	height: 0.2em;
 
-	margin: 0.5em;
 	padding: 0px;
 	
 	background-color: #ffffff;
 	border-radius: 0.1em;
 }
 
-/* Adjusts page to device. */
-
-.mobile {
-	display: none !important;
+.burger :nth-child(2) {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
 }
 
+/* Adjusts page to device. */
+
 /* https://stackoverflow.com/a/50302305/13347795 */
-/*@media (pointer:none), (pointer:coarse) {
+@media (pointer:none), (pointer:coarse) {
 	.desktop {
 		display: none !important;
 	}
 
-	.mobile {
-		display: initial !important;
-	}
-
 	nav {
-		width: min-content !important;
+		top: 0.5em;
+		left: 0.5em;
 
-		top: 0.5em !important;
-		left: 0.5em !important;
-
-		border-radius: 0.5em;
-		box-shadow: #00000055 5px 5px 10px !important;
+		box-shadow: #00000055 5px 5px 10px;
+		border-radius: 0.75em;
 	}
-}*/
+
+	nav.open {
+		bottom: 0.5em;
+		right: 0.5em;
+	}
+
+	nav:not(.open) .mobile .contents, nav:not(.open) .mobile .topBar > :not(.burger) {
+		display: none;
+	}
+
+	/* Nav mobile burger animation. */
+
+	nav .burger {
+		border-radius: 0.75em;
+		transition: background-color var(--navTransition);
+	}
+	nav.open .burger {
+		background-color: #00000033;
+
+		border-top-right-radius: 0px;
+		border-bottom-left-radius: 0px;
+	}
+
+	/* Animates burger menu to X. */
+	nav .burger :nth-child(1), .burger :nth-child(3) {
+		transition: transform var(--navTransition);
+	}
+	nav .burger :nth-child(2) {
+		transition: opacity var(--navTransition);
+	}
+	nav.open .burger :nth-child(1) {
+		transform: rotate(45deg) translate(0.5em, 0.5em);
+	}
+	nav.open .burger :nth-child(3) {
+		transform: rotate(-45deg) translate(0.5em, -0.5em);
+	}
+	nav.open .burger :nth-child(2) {
+		opacity: 0;
+	}
+}
+
+/* The opposite, don't know how to do it properly. */
+@media not (pointer:none) {
+	@media not (pointer:coarse) {
+		.mobile {
+			display: none !important;
+		}
+
+		nav {
+			width: 100%;
+
+			top: 0px;
+
+			box-shadow: #00000055 0px 5px 10px;
+		}
+	}
+}

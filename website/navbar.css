@@ -1,10 +1,7 @@
 ﻿nav {
 	position: fixed;
-	top: 0px;
 
-	width: 100%;
-
-	box-shadow: #00000055 0px 5px 10px;
+	z-index: 1;
 }
 
 nav .dropdown {
@@ -19,11 +16,36 @@ nav ul.panel li > :not(ul), nav .dropdown > :not(ul) {
 	padding: var(--quarterSpace);
 }
 
-/*nav .burger {
-	display: block;
+/* Handles mobile navbar. */
+
+nav .mobile {
+	max-width: 100%;
+	max-height: 100%;
+
+	color: #ffffff;
+	text-decoration: none;
+
+	overflow-y: scroll;
 }
 
-nav .mobile:hover {
-	width: 100vw;
-	height: 100vh;
-}*/
+nav .mobile .topBar {
+	display: flex;
+}
+
+nav .mobile h1 {
+	font-size: 1.5rem;
+	margin-left: 0.5rem;
+}
+
+nav .mobile .contents ul {
+	list-style-type: square;
+}
+
+nav .mobile .contents a {
+	display: inline-block;
+
+	padding: 0.5em;
+
+	color: #ffffff;
+	font-size: 1.2rem;
+}

@@ -2,11 +2,26 @@
 		<ul class="panel desktop">{{for button in navbarButtons}}
 			{{if button.value | object.typeof == "object"}}<li class="dropdown">{{for row in button.value limit:1}}
 				<a href="{{button.key + row.key}}">{{row.value}} <span class="arrow"></span></a>{{end}}
-				<ul class="contents panel">
-					{{for row in button.value offset:1}}
+				<ul class="contents panel">{{for row in button.value offset:1}}
 					<li><a href="{{button.key + row.key}}">{{row.value}}</a></li>{{end}}
 				</ul>
 			{{else}}<li><a href="{{button.key}}">{{button.value}}</a>{{end}}</li>{{end}}
 		</ul>
-		<div class="mobile"><a class="burger"><div></div><div></div><div></div></a></div>
+		<div class="mobile">
+			<div class="topBar">
+				<div class="burger" onclick="this.parentElement.parentElement.parentElement.classList.toggle('open');"><div></div><div></div><div></div></div>
+				<h1>Dave's Fantastic Website&trade;</h1>
+			</div>
+			<div class="contents">
+				<ul>{{for button in navbarButtons}}
+					{{if button.value | object.typeof == "object"}}<li>{{for row in button.value limit:1}}
+						<a href="{{button.key + row.key}}">{{row.value}}</a>{{end}}
+						<ul>{{for row in button.value offset:1}}
+							<li><a href="{{button.key + row.key}}">{{row.value}}</a></li>{{end}}
+						</ul>
+					</li>
+					{{else}}<li><a href="{{button.key}}">{{button.value}}</a>{{end}}</li>{{end}}
+				</ul>
+			</div>
+		</div>
 	</nav>{{else}}	<!-- Navbar buttons were not sent to this page. -->{{end}}
