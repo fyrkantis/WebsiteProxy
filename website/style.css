@@ -26,6 +26,7 @@ body {
 
 main {
 	overflow: hidden; /* Prevents float elements from overflowing. */
+	word-break: break-word;
 
 	margin: var(--space);
 	margin-top: var(--doubleSpace);
@@ -49,6 +50,7 @@ figure {
 aside {
 	float: right;
 
+	width: 20rem;
 	max-width: 100%;
 
 	margin: calc(var(--quarterSpace));
@@ -60,7 +62,13 @@ aside {
 
 aside > * {
 	margin: 0px !important;
-	max-width: 20rem;
+}
+
+/* https://www.w3schools.com/css/css3_mediaqueries_ex.asp */
+@media screen and (max-width: 40rem) {
+	aside {
+		width: 100%;
+	}
 }
 
 /* Text styles */
@@ -118,7 +126,6 @@ ul.panel li a {
 
 ul.panel a:hover, nav .dropdown:hover a {
 	background-color: #00000033;
-	/*text-decoration: underline;*/
 
 	transition: background-color 0.2s;
 }
@@ -126,6 +133,10 @@ ul.panel a:hover, nav .dropdown:hover a {
 /* Darker! */
 nav .dropdown:hover .contents a:hover {
 	background-color: #00000055;
+}
+
+ul.panel a:hover, nav .dropdown:hover .contents a:hover {
+	text-decoration: underline;
 }
 
 /* Dropdown */
