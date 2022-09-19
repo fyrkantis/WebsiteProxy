@@ -50,7 +50,7 @@ figure {
 aside {
 	float: right;
 
-	width: 20rem;
+	width: calc(10em + 10vw);
 	max-width: 100%;
 
 	margin: calc(var(--quarterSpace));
@@ -65,10 +65,35 @@ aside > * {
 }
 
 /* https://www.w3schools.com/css/css3_mediaqueries_ex.asp */
-@media screen and (max-width: 40rem) {
+@media screen and (max-width: calc(40em + 10vw)) {
 	aside {
 		width: 100%;
 	}
+}
+
+/* Table styles */
+
+table {
+	border-collapse: collapse;
+}
+
+th, td {
+	padding: 0.5em;
+}
+
+th {
+	color: #ffffff;
+	background-color: #32a6c3;
+	border: solid 1px #32a6c3;
+}
+
+td {
+	background-color: #eeeeee;
+	border: solid 1px #dddddd;
+}
+
+tr:nth-child(even) td {
+	background-color: #dddddd;
 }
 
 /* Text styles */

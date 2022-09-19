@@ -18,22 +18,23 @@
 			<h1>Dave's Fantastic Website&trade;</h1>
 			<hr>
 			<p>It's great!</p>
-			<div class="dropdown">
-				<p>Dropdown <span class="arrow"></span></p>
-				<ul class="contents panel">
-					<li><a>Thing 1</a></li>
-					<li><a>Thing 2</a></li>
-					<li><a>Thing 3</a></li>
-					<li><a>Thing 4</a></li>
-				</ul>
-			</div>
-			<form action="/formtest/" method="POST">
+			<form action="/guest/" method="POST">
 				<fieldset>
-					<legend>Form Test</legend>
-					<label for="name">What's your name?</label>
+					<legend>Guest Book</legend>
+					<label for="name">Sign your name</label>
 					<br>
-					<input name="name" type="text" placeholder="Name">
-					<input type="submit" value="Submit">
+					<input name="name" type="text" placeholder="Name" required>
+					<input type="submit" value="Sign">
+					<table>
+						<tr>
+							<th>Previous Guests</th>
+						</tr>{{if guests && guests.size > 0}}{{for guest in guests}}
+						<tr>
+							<td>{{guest.value}}</td>
+						</tr>{{end}}{{else}}<tr>
+							<td><i>None</i></td>
+						</tr>{{end}}
+					</table>
 				</fieldset>
 			</form>
 		</article>

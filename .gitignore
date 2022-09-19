@@ -9,6 +9,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.db
 *.env
 !config.env
 [Ll]ogs/**

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using LiteDB;
 
 namespace WebsiteProxy
 {
@@ -10,6 +11,9 @@ namespace WebsiteProxy
 
 		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");
 		public static TextInfo textInfo = cultureInfo.TextInfo;
+
+		//static LiteDatabase database = new LiteDatabase(Path.Combine(currentDirectory, "database.db"));
+		//public static ILiteCollection<string> guests = database.GetCollection<string>("guests");
 
 		public static Dictionary<string, object> navbarButtons
 		{

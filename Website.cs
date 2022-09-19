@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using LiteDB;
+using Newtonsoft.Json.Linq;
 using System.Net.Sockets;
 
 namespace WebsiteProxy
@@ -171,7 +172,7 @@ namespace WebsiteProxy
 				}
 				clientSocket.SendError(404, "The requested repository \"" + route + "\" could not be found.");
 			}),
-			new Route("/formtest/", new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
+			new Route("/guest/", new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
 			{
 				string? data = clientSocket.ReadPost(requestHeaders);
 				if (log != null)
@@ -180,21 +181,31 @@ namespace WebsiteProxy
 				}
 				if (data != null)
 				{
-					clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "templates", "message.html"), new Dictionary<string, object>
+					if (data.StartsWith("name=")) // TODO: Replace temp data enterpreter.
 					{
-						{ "title", "Data received" },
-						{ "message", data }
-					}, log);
+						//Dictionary<string, BsonValue> bsonDictionary = new Dictionary<string, BsonValue>(){ { "aaa", data.Substring(5) } };
+						/*BsonDocument bsonDocument = new BsonDocument();
+						bsonDocument["_id"] = ObjectId.NewObjectId();
+						bsonDocument["name"] = data.Substring(5);
+						BsonMapper mapper = new BsonMapper();
+						BsonValue value = mapper.Serialize(data.Substring(5));*/
+						//LiteDatabase database = new LiteDatabase(Path.Combine(Util.currentDirectory, "database.db"));
+						//var guests = database.GetCollection<string>("guests");
+						//guests.Insert(data.Substring(5));
+						//clientSocket.SendRedirectResponse(303, "/", log);
+						clientSocket.SendError(501, "The guest list is not functional yet.");
+					}
+					else
+					{
+						clientSocket.SendError(400, "Data was malformed.", log: log);
+					}
 				}
 				else
 				{
-					clientSocket.SendError(400, "No data was received.", log: log);
+					clientSocket.SendError(422, "No data was received.", log: log);
 				}
-			}),
-			new Route("/test/", new string[] { "GET" }, (clientSocket, requestHeaders, route, log) =>
-			{
-				clientSocket.SendBodyResponse(";)", log);
 			})
+
 		};
 
 		class Route
@@ -289,6 +300,7 @@ namespace WebsiteProxy
 				}
 			}
 
+			// Tries to load a file or page.
 			if (!clientSocket.TrySendUnknown(requestHeaders, route, log: log))
 			{
 				clientSocket.SendError(404, "The requested page \"" + requestHeaders.url + "\" could not be found.", log: log);
