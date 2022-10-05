@@ -206,6 +206,7 @@ ul.panel a:hover, nav .dropdown:hover .contents a:hover {
 }
 
 .dropdown .arrow {
+	margin-left: 1em;
 	transition: transform 0.2s;
 }
 

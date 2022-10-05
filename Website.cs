@@ -100,12 +100,17 @@ namespace WebsiteProxy
 					clientSocket.SendError(500, exception.Message, log: log);
 				}
 			}),
-			new Route("/repositories/", null, (clientSocket, requestHeaders, route, log) =>
+			new Route("/repositories/", null, (clientSocket, requestHeaders, route, log) => // Old address.
+			{
+				log.AddRow(route, LogColor.Info);
+				clientSocket.SendRedirectResponse(308, "/projects/" + route, log);
+			}),
+			new Route("/projects/", null, (clientSocket, requestHeaders, route, log) =>
 			{
 				Dictionary<string, object> parameters = new Dictionary<string, object>();
 				if (string.IsNullOrWhiteSpace(route))
 				{
-					List<Dictionary<string, object>> repositories = new List<Dictionary<string, object>>();
+					List<Dictionary<string, object>> projects = new List<Dictionary<string, object>>();
 					foreach (DirectoryInfo directory in new DirectoryInfo(Path.Combine(Util.currentDirectory, "repositories")).GetDirectories())
 					{
 						Dictionary<string, object> repository = new Dictionary<string, object>();
@@ -123,13 +128,13 @@ namespace WebsiteProxy
 							repository.Add("readme", Path.Combine("repositories", directory.Name, readme.Name));
 							break;
 						}
-						repositories.Add(repository);
+						projects.Add(repository);
 					}
-					parameters.Add("repositories", repositories);
+					parameters.Add("projects", projects);
 				}
 
-				// Tries to load a regular page in the /website/repositories/ folder.
-				if (clientSocket.TrySendUnknown(requestHeaders, "repositories/" + route, parameters: parameters, log: log))
+				// Tries to load a regular page in the /website/projects/ folder.
+				if (clientSocket.TrySendUnknown(requestHeaders, "projects/" + route, parameters: parameters, log: log))
 				{
 					return;
 				}
@@ -155,7 +160,7 @@ namespace WebsiteProxy
 							}
 						}
 						// Tries to load file or page.
-						if (clientSocket.TrySendUnknown(requestHeaders, Path.Combine(websitePath, remainingPath), directory: "repositories", route: "repositories/" + route, enableTemplate: false, log: log))
+						if (clientSocket.TrySendUnknown(requestHeaders, Path.Combine(websitePath, remainingPath), directory: "repositories", route: "projects/" + route, enableTemplate: false, log: log))
 						{
 							return;
 						}
@@ -222,7 +227,9 @@ namespace WebsiteProxy
 			}
 		}
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 		public static async void HandleConnection(Socket clientSocket, RequestHeaders requestHeaders, Log? log = null)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 		{
 			// Path vs route explanation: path is for the server directory and route is the request url, ok?
 
@@ -250,7 +257,7 @@ namespace WebsiteProxy
 			}
 
 			// The preferred route to be used.
-			string route = requestHeaders.url.Replace(".html", null, true, null).Replace("index", null, true, null).Trim('/');
+			string route = requestHeaders.url.Replace(".html", null, true, null).Replace("index", null, true, null).TrimStart('/');
 
 			// Sends a fake .env file when one is requested.
 			if (route.ToLower().EndsWith(".env"))
@@ -271,7 +278,7 @@ namespace WebsiteProxy
 			// Checks if the route matches a pre-defined route.
 			foreach (Route routeAlternative in routes)
 			{
-				string baseRoute = routeAlternative.name.Trim('/').ToLower();
+				string baseRoute = routeAlternative.name.TrimStart('/').ToLower();
 				if (route.ToLower().StartsWith(baseRoute))
 				{
 					string subRoute = route.Remove(0, baseRoute.Length).TrimStart('/');

@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+{{include "/templates/meta.html"}}
+	<link rel="stylesheet" href="/projects/style.css">
+
+	<title>Dave's fantastic website™</title>
+</head>
+<body>
+{{include "/templates/navbar.html"}}
+	<main>
+		<article>
+			<h1>Projects&trade;</h1>
+			<hr>
+			<p>They're also great!</p>
+			<ul class="panel project">{{for project in projects}}
+			<li><a href="/projects/{{project.route}}">{{if project.readme}}
+				{{include project.readme}}{{else}}
+				<h3>{{if project.name}}{{project.name}}{{else}}Unnamed Project #{{for.index}}{{end}}</h3>{{end}}
+			</a></li>{{end}}
+			</ul>
+		</article>
+	</main>
+</body>
+</html>

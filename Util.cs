@@ -5,7 +5,9 @@ namespace WebsiteProxy
 {
 	public static class Util
 	{
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 		public static string currentDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
 		public static Dictionary<string, string> environment = ReadEnv(Path.Combine(currentDirectory, "tokens.env"));
 
@@ -19,25 +21,25 @@ namespace WebsiteProxy
 		{
 			get
 			{
-				Dictionary<string, object> repositories = new Dictionary<string, object>()
+				Dictionary<string, object> projects = new Dictionary<string, object>()
 				{
-					{ "/", "Repositories" }
+					{ "/", "Projects" }
 				};
-				foreach (DirectoryInfo repository in new DirectoryInfo(Path.Combine(Util.currentDirectory, "repositories")).GetDirectories())
+				foreach (DirectoryInfo repository in new DirectoryInfo(Path.Combine(currentDirectory, "repositories")).GetDirectories())
 				{
 					if (TryGetConfigValue(repository.FullName, "name", out string name))
 					{
-						repositories.Add("/" + repository.Name + "/", name);
+						projects.Add("/" + repository.Name + "/", name);
 					}
 					else
 					{
-						repositories.Add("/" + repository.Name + "/", repository.Name);
+						projects.Add("/" + repository.Name + "/", repository.Name);
 					}
 				}
 				Dictionary<string, object> buttons = new Dictionary<string, object>()
 				{
 					{ "/", "Home page" },
-					{ "/repositories", repositories },
+					{ "/projects", projects },
 					{ "/ha/youDumbFuck/", "Some crazy third page" }
 				};
 				return buttons;
