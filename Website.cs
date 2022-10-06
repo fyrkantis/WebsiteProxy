@@ -102,7 +102,6 @@ namespace WebsiteProxy
 			}),
 			new Route("/repositories/", null, (clientSocket, requestHeaders, route, log) => // Old address.
 			{
-				log.AddRow(route, LogColor.Info);
 				clientSocket.SendRedirectResponse(308, "/projects/" + route, log);
 			}),
 			new Route("/projects/", null, (clientSocket, requestHeaders, route, log) =>
@@ -143,10 +142,10 @@ namespace WebsiteProxy
 				foreach (DirectoryInfo directory in new DirectoryInfo(Path.Combine(Util.currentDirectory, "repositories")).GetDirectories())
 				{
 					string shortName = directory.Name.Trim('/').ToLower();
-					string remainingPath = route.Remove(0, directory.Name.Length).Trim('/', '\\');
 					if (route.ToLower().StartsWith(shortName))
 					{
-						string websitePath = directory.Name;
+                        string remainingPath = route.Remove(0, directory.Name.Length).Trim('/', '\\'); // Could cause ArgumentOutOfRangeException.
+                        string websitePath = directory.Name;
 						Dictionary<string, object> headers = new Dictionary<string, object>();
 						if (Util.TryGetConfig(directory.FullName, out Dictionary<string, string> config))
 						{
@@ -166,7 +165,7 @@ namespace WebsiteProxy
 						}
 
 						// Looks for custom 404 page.
-						if (Util.TryGetConfigValue(directory.FullName, "404", out string errorPage) && clientSocket.TrySendFile(requestHeaders, Path.Combine(directory.FullName, errorPage.Trim('/', '\\')), headers: headers, log: log))
+						if (Util.TryGetConfigValue(directory.FullName, "404", out string errorPage) && clientSocket.TrySendFile(requestHeaders, Path.Combine(directory.FullName, errorPage.Trim('/', '\\')), code: 404, headers: headers, log: log))
 						{
 							return;
 						}
@@ -175,7 +174,7 @@ namespace WebsiteProxy
 						return;
 					}
 				}
-				clientSocket.SendError(404, "The requested repository \"" + route + "\" could not be found.");
+				clientSocket.SendError(404, "The requested repository \"" + route + "\" could not be found.", log: log);
 			}),
 			new Route("/guest/", new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
 			{
@@ -198,7 +197,7 @@ namespace WebsiteProxy
 						//var guests = database.GetCollection<string>("guests");
 						//guests.Insert(data.Substring(5));
 						//clientSocket.SendRedirectResponse(303, "/", log);
-						clientSocket.SendError(501, "The guest list is not functional yet.");
+						clientSocket.SendError(501, "The guest list is not functional yet, sorry!");
 					}
 					else
 					{
@@ -350,15 +349,15 @@ namespace WebsiteProxy
 			}
 			return false;
 		}
-		public static bool TrySendFile(this Socket clientSocket, RequestHeaders requestHeaders, string path, string? preferredRoute = null, Dictionary<string, object>? headers = null, Log? log = null)
+		public static bool TrySendFile(this Socket clientSocket, RequestHeaders requestHeaders, string path, string? preferredRoute = null, int code = 200, Dictionary<string, object>? headers = null, Log? log = null)
 		{
 			if (!File.Exists(path))
 			{
 				return false;
 			}
-			if (!clientSocket.TrySendError(requestHeaders, path, preferredRoute, log))
+			if (!clientSocket.TrySendError(requestHeaders, preferredRoute, log))
 			{
-				ResponseHeaders responseHeaders = new ResponseHeaders(headers: headers);
+				ResponseHeaders responseHeaders = new ResponseHeaders(code, headers: headers);
 				clientSocket.SendFileResponse(path, responseHeaders, log: log);
 			}
 			return true;
@@ -369,7 +368,7 @@ namespace WebsiteProxy
 			{
 				return false;
 			}
-			if (!clientSocket.TrySendError(requestHeaders, path, preferredRoute, log))
+			if (!clientSocket.TrySendError(requestHeaders, preferredRoute, log))
 			{
 				ResponseHeaders responseHeaders = new ResponseHeaders(headers: headers);
 				clientSocket.SendPageResponse(path, responseHeaders, parameters, log: log);
@@ -377,7 +376,7 @@ namespace WebsiteProxy
 			return true;
 		}
 		// Returns true and sends error response if there are any errors, otherwise returns false.
-		public static bool TrySendError(this Socket clientSocket, RequestHeaders requestHeaders, string path, string? preferredPath = null, Log? log = null)
+		public static bool TrySendError(this Socket clientSocket, RequestHeaders requestHeaders, string? preferredPath = null, Log? log = null)
 		{
 			if (requestHeaders.method == null || requestHeaders.method.ToUpper() != "GET") // method should already not be null here.
 			{
