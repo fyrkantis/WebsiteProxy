@@ -14,8 +14,8 @@ namespace WebsiteProxy
 		public static CultureInfo cultureInfo = CultureInfo.GetCultureInfo("sv-SE");
 		public static TextInfo textInfo = cultureInfo.TextInfo;
 
-		//static LiteDatabase database = new LiteDatabase(Path.Combine(currentDirectory, "database.db"));
-		//public static ILiteCollection<string> guests = database.GetCollection<string>("guests");
+		public static LiteDatabase database = new LiteDatabase(Path.Combine(currentDirectory, "database.db"));
+		public static ILiteCollection<User> users = database.GetCollection<User>("users");
 
 		public static Dictionary<string, object> navbarButtons
 		{

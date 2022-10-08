@@ -157,7 +157,9 @@ namespace WebsiteProxy
 				parameters = new Dictionary<string, object>();
 			}
 			parameters.Add("navbarButtons", Util.navbarButtons);
-			//parameters.Add("guests", Util.guests.FindAll());
+			User[] users = Util.users.FindAll().ToArray();
+			Array.Reverse(users);
+			parameters.Add("guests", users);
 			socket.SendBodyResponse(TemplateLoader.Render(path, parameters, log), responseHeaders, log);
 		}
 

@@ -1,5 +1,6 @@
 ﻿using LiteDB;
 using Newtonsoft.Json.Linq;
+using System.Net;
 using System.Net.Sockets;
 
 namespace WebsiteProxy
@@ -187,17 +188,8 @@ namespace WebsiteProxy
 				{
 					if (data.StartsWith("name=")) // TODO: Replace temp data enterpreter.
 					{
-						//Dictionary<string, BsonValue> bsonDictionary = new Dictionary<string, BsonValue>(){ { "aaa", data.Substring(5) } };
-						/*BsonDocument bsonDocument = new BsonDocument();
-						bsonDocument["_id"] = ObjectId.NewObjectId();
-						bsonDocument["name"] = data.Substring(5);
-						BsonMapper mapper = new BsonMapper();
-						BsonValue value = mapper.Serialize(data.Substring(5));*/
-						//LiteDatabase database = new LiteDatabase(Path.Combine(Util.currentDirectory, "database.db"));
-						//var guests = database.GetCollection<string>("guests");
-						//guests.Insert(data.Substring(5));
-						//clientSocket.SendRedirectResponse(303, "/", log);
-						clientSocket.SendError(501, "The guest list is not functional yet, sorry!");
+						Util.users.Insert(new User(WebUtility.UrlDecode(data.Substring(5))));
+						clientSocket.SendRedirectResponse(303, "/", log);
 					}
 					else
 					{
