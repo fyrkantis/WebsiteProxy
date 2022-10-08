@@ -1,4 +1,6 @@
-﻿namespace WebsiteProxy
+﻿using System.Web;
+
+namespace WebsiteProxy
 {
 	public class User
 	{
