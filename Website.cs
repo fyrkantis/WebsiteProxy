@@ -102,7 +102,6 @@ namespace WebsiteProxy
 			}),
 			new Route("/repositories/", null, (clientSocket, requestHeaders, route, log) => // Old address.
 			{
-				log.AddRow(route, LogColor.Info);
 				clientSocket.SendRedirectResponse(308, "/projects/" + route, log);
 			}),
 			new Route("/projects/", null, (clientSocket, requestHeaders, route, log) =>
@@ -142,10 +141,20 @@ namespace WebsiteProxy
 				// Tries to load a git repository page.
 				foreach (DirectoryInfo directory in new DirectoryInfo(Path.Combine(Util.currentDirectory, "repositories")).GetDirectories())
 				{
-					string shortName = directory.Name.Trim('/').ToLower();
-					string remainingPath = route.Remove(0, directory.Name.Length).Trim('/', '\\');
-					if (route.ToLower().StartsWith(shortName))
+					string shortName = directory.Name.Trim('/');
+					if (directory.Name.Length > route.Length)
 					{
+						continue;
+					}
+					string remainingPath = route.Remove(0, directory.Name.Length).Trim('/', '\\');
+					if (route.ToLower().StartsWith(shortName.ToLower()))
+					{
+						// TODO: Handle wrong capitalization here!
+						/*if (!route.StartsWith(shortName))
+						{
+							clientSocket.SendRedirectResponse(308, "/projects/" + )
+							return;
+						}*/
 						string websitePath = directory.Name;
 						Dictionary<string, object> headers = new Dictionary<string, object>();
 						if (Util.TryGetConfig(directory.FullName, out Dictionary<string, string> config))
@@ -175,7 +184,7 @@ namespace WebsiteProxy
 						return;
 					}
 				}
-				clientSocket.SendError(404, "The requested repository \"" + route + "\" could not be found.");
+				clientSocket.SendError(404, "The requested project \"" + route + "\" could not be found.");
 			}),
 			new Route("/guest/", new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
 			{
@@ -278,8 +287,8 @@ namespace WebsiteProxy
 			// Checks if the route matches a pre-defined route.
 			foreach (Route routeAlternative in routes)
 			{
-				string baseRoute = routeAlternative.name.TrimStart('/').ToLower();
-				if (route.ToLower().StartsWith(baseRoute))
+				string baseRoute = routeAlternative.name.TrimStart('/');
+				if (route.ToLower().StartsWith(baseRoute.ToLower()))
 				{
 					string subRoute = route.Remove(0, baseRoute.Length).TrimStart('/');
 					if (!requestHeaders.url.StartsWith(routeAlternative.name))
@@ -356,6 +365,7 @@ namespace WebsiteProxy
 			{
 				return false;
 			}
+			// TODO: Handle wrong capitalization here!
 			if (!clientSocket.TrySendError(requestHeaders, path, preferredRoute, log))
 			{
 				ResponseHeaders responseHeaders = new ResponseHeaders(headers: headers);

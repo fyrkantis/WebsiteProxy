@@ -23,7 +23,8 @@ namespace WebsiteProxy
 			{
 				Dictionary<string, object> projects = new Dictionary<string, object>()
 				{
-					{ "/", "Projects" }
+					{ "/", "Projects" },
+					{ "/ISOBot/", "ISO-Bot" }
 				};
 				foreach (DirectoryInfo repository in new DirectoryInfo(Path.Combine(currentDirectory, "repositories")).GetDirectories())
 				{

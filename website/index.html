@@ -8,15 +8,15 @@
 <body>
 {{include "/templates/navbar.html"}}
 	<main>
-		<aside>
-			<figure>
-				<img src="/daveWithHats.png" alt="David with 3 hats on looking into the camera like a sociopath.">
-				<figcaption>There's no such thing as <i>&ldquo;too many hats&rdquo;</i>.</figcaption>
-			</figure>
-		</aside>
 		<article>
 			<h1>Dave's Fantastic Website&trade;</h1>
 			<hr>
+			<aside>
+				<figure>
+					<img src="/daveWithHats.png" alt="David with 3 hats on looking into the camera like a sociopath.">
+					<figcaption>There's no such thing as <i>&ldquo;too many hats&rdquo;</i>.</figcaption>
+				</figure>
+			</aside>
 			<p>It's great!</p>
 			<form action="/guest/" method="POST">
 				<fieldset>
@@ -28,12 +28,16 @@
 					<table>
 						<tr>
 							<th>Previous Guests</th>
-						</tr>{{if guests && guests.size > 0}}{{for guest in guests}}
+						</tr>
+						{{if guests && guests.size > 0}}{{for guest in guests}}
 						<tr>
 							<td>{{guest.value}}</td>
-						</tr>{{end}}{{else}}<tr>
+						</tr>
+						{{end}}{{else}}
+						<tr>
 							<td><i>None</i></td>
-						</tr>{{end}}
+						</tr>
+						{{end}}
 					</table>
 				</fieldset>
 			</form>

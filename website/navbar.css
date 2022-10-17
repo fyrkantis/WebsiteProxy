@@ -1,6 +1,7 @@
 ﻿nav {
 	position: fixed;
 	z-index: 1;
+	color: #ffffff;
 }
 
 nav .dropdown {
