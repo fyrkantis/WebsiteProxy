@@ -1,5 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Text;
+using System.Web;
 
 namespace WebsiteProxy
 {
@@ -157,7 +158,14 @@ namespace WebsiteProxy
 				parameters = new Dictionary<string, object>();
 			}
 			parameters.Add("navbarButtons", Util.navbarButtons);
-			//parameters.Add("guests", Util.guests.FindAll());
+
+			List<string> users = new List<string>();
+			foreach (User user in Util.users.FindAll())
+			{
+				users.Add(HttpUtility.HtmlEncode(user.name));
+			}
+			users.Reverse();
+			parameters.Add("guests", users);
 			socket.SendBodyResponse(TemplateLoader.Render(path, parameters, log), responseHeaders, log);
 		}
 

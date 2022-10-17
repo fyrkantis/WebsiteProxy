@@ -1,5 +1,6 @@
 ﻿using LiteDB;
 using Newtonsoft.Json.Linq;
+using System.Net;
 using System.Net.Sockets;
 
 namespace WebsiteProxy
@@ -175,7 +176,7 @@ namespace WebsiteProxy
 						}
 
 						// Looks for custom 404 page.
-						if (Util.TryGetConfigValue(directory.FullName, "404", out string errorPage) && clientSocket.TrySendFile(requestHeaders, Path.Combine(directory.FullName, errorPage.Trim('/', '\\')), headers: headers, log: log))
+						if (Util.TryGetConfigValue(directory.FullName, "404", out string errorPage) && clientSocket.TrySendFile(requestHeaders, Path.Combine(directory.FullName, errorPage.Trim('/', '\\')), code: 404, headers: headers, log: log))
 						{
 							return;
 						}
@@ -197,17 +198,8 @@ namespace WebsiteProxy
 				{
 					if (data.StartsWith("name=")) // TODO: Replace temp data enterpreter.
 					{
-						//Dictionary<string, BsonValue> bsonDictionary = new Dictionary<string, BsonValue>(){ { "aaa", data.Substring(5) } };
-						/*BsonDocument bsonDocument = new BsonDocument();
-						bsonDocument["_id"] = ObjectId.NewObjectId();
-						bsonDocument["name"] = data.Substring(5);
-						BsonMapper mapper = new BsonMapper();
-						BsonValue value = mapper.Serialize(data.Substring(5));*/
-						//LiteDatabase database = new LiteDatabase(Path.Combine(Util.currentDirectory, "database.db"));
-						//var guests = database.GetCollection<string>("guests");
-						//guests.Insert(data.Substring(5));
-						//clientSocket.SendRedirectResponse(303, "/", log);
-						clientSocket.SendError(501, "The guest list is not functional yet.");
+						Util.users.Insert(new User(WebUtility.UrlDecode(data.Substring(5))));
+						clientSocket.SendRedirectResponse(303, "/", log);
 					}
 					else
 					{
@@ -359,16 +351,16 @@ namespace WebsiteProxy
 			}
 			return false;
 		}
-		public static bool TrySendFile(this Socket clientSocket, RequestHeaders requestHeaders, string path, string? preferredRoute = null, Dictionary<string, object>? headers = null, Log? log = null)
+		public static bool TrySendFile(this Socket clientSocket, RequestHeaders requestHeaders, string path, string? preferredRoute = null, int code = 200, Dictionary<string, object>? headers = null, Log? log = null)
 		{
 			if (!File.Exists(path))
 			{
 				return false;
 			}
-			// TODO: Handle wrong capitalization here!
-			if (!clientSocket.TrySendError(requestHeaders, path, preferredRoute, log))
+			// TODO: Handle wrong capitalization here!s
+			if (!clientSocket.TrySendError(requestHeaders, preferredRoute, log))
 			{
-				ResponseHeaders responseHeaders = new ResponseHeaders(headers: headers);
+				ResponseHeaders responseHeaders = new ResponseHeaders(code, headers: headers);
 				clientSocket.SendFileResponse(path, responseHeaders, log: log);
 			}
 			return true;
@@ -379,7 +371,7 @@ namespace WebsiteProxy
 			{
 				return false;
 			}
-			if (!clientSocket.TrySendError(requestHeaders, path, preferredRoute, log))
+			if (!clientSocket.TrySendError(requestHeaders, preferredRoute, log))
 			{
 				ResponseHeaders responseHeaders = new ResponseHeaders(headers: headers);
 				clientSocket.SendPageResponse(path, responseHeaders, parameters, log: log);
@@ -387,7 +379,7 @@ namespace WebsiteProxy
 			return true;
 		}
 		// Returns true and sends error response if there are any errors, otherwise returns false.
-		public static bool TrySendError(this Socket clientSocket, RequestHeaders requestHeaders, string path, string? preferredPath = null, Log? log = null)
+		public static bool TrySendError(this Socket clientSocket, RequestHeaders requestHeaders, string? preferredPath = null, Log? log = null)
 		{
 			if (requestHeaders.method == null || requestHeaders.method.ToUpper() != "GET") // method should already not be null here.
 			{

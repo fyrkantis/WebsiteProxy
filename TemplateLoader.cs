@@ -4,6 +4,7 @@ using Scriban.Runtime;
 using CommonMark;
 using System.Text;
 
+
 namespace WebsiteProxy
 {
 	public static class TemplateLoader

@@ -64,7 +64,7 @@ figure {
 	text-align: center;
 }
 
-figure:not(main) {
+body > figure {
 	margin: 0px;
 	background-color: #000000;
 }
@@ -99,6 +99,16 @@ aside > * {
 	aside {
 		width: 100%;
 	}
+}
+
+/* Form styles */
+
+fieldset {
+	max-width: 100%; /* TODO: Make this work for input elements as well. */
+}
+
+fieldset {
+	width: max-content;
 }
 
 /* Table styles */
