@@ -218,7 +218,7 @@ namespace WebsiteProxy
 				User? user = null;
 				if (requestHeaders.cookie.TryGetValue("Id", out string? userId))
 				{
-					List<User> foundUsers = Util.users.Query().Where(userId).Limit(1).ToList();
+					List<User> foundUsers = Util.users.Query().Where(x => x.id == userId).Limit(1).ToList();
 					if (foundUsers.Count > 0)
 					{
 						user = foundUsers[0];
