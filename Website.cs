@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Web;
 
 namespace WebsiteProxy
 {
@@ -9,7 +10,27 @@ namespace WebsiteProxy
 	{
 		static Route[] routes =
 		{
-			new Route("/github/", new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
+			new Route("/", false, new string[] { "GET" }, (clientSocket, requestHeaders, route, log) => {
+				string? userId = null;
+				if (requestHeaders.cookie.ContainsKey("Id"))
+				{
+					userId = requestHeaders.cookie["Id"];
+				}
+				Dictionary<string, object> parameters = new Dictionary<string, object>();
+				List<Dictionary<string, object>> users = new List<Dictionary<string, object>>();
+				foreach (User user in Util.users.FindAll())
+				{
+					users.Add(new Dictionary<string, object>()
+					{
+						{ "name", HttpUtility.HtmlEncode(user.name) },
+						{ "isUser", user.id == userId }
+					});
+				}
+				users.Reverse();
+				parameters.Add("guests", users);
+				clientSocket.SendPageResponse(Path.Combine(Util.currentDirectory, "website", "index.html"), parameters, log: log);
+			}),
+			new Route("/github/", false, new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
 			{
 				string? data = clientSocket.ReadPost(requestHeaders);
 				if (!requestHeaders.headers.ContainsKey("Content-Type"))
@@ -101,11 +122,11 @@ namespace WebsiteProxy
 					clientSocket.SendError(500, exception.Message, log: log);
 				}
 			}),
-			new Route("/repositories/", null, (clientSocket, requestHeaders, route, log) => // Old address.
+			new Route("/repositories/", true, null, (clientSocket, requestHeaders, route, log) => // Old address.
 			{
-				clientSocket.SendRedirectResponse(308, "/projects/" + route, log);
+				clientSocket.SendRedirectResponse(308, "/projects/" + route, log: log);
 			}),
-			new Route("/projects/", null, (clientSocket, requestHeaders, route, log) =>
+			new Route("/projects/", true, null, (clientSocket, requestHeaders, route, log) =>
 			{
 				Dictionary<string, object> parameters = new Dictionary<string, object>();
 				if (string.IsNullOrWhiteSpace(route))
@@ -187,7 +208,7 @@ namespace WebsiteProxy
 				}
 				clientSocket.SendError(404, "The requested project \"" + route + "\" could not be found.");
 			}),
-			new Route("/guest/", new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
+			new Route("/guest/", false, new string[] { "POST" }, (clientSocket, requestHeaders, route, log) =>
 			{
 				string? data = clientSocket.ReadPost(requestHeaders);
 				if (log != null)
@@ -198,8 +219,11 @@ namespace WebsiteProxy
 				{
 					if (data.StartsWith("name=")) // TODO: Replace temp data enterpreter.
 					{
-						Util.users.Insert(new User(WebUtility.UrlDecode(data.Substring(5))));
-						clientSocket.SendRedirectResponse(303, "/", log);
+						User user = new User(WebUtility.UrlDecode(data.Substring(5)));
+						Util.users.Insert(user);
+						ResponseHeaders responseHeaders = new ResponseHeaders(303);
+						responseHeaders.SetUser(user);
+						clientSocket.SendRedirectResponse("/", responseHeaders, log: log);
 					}
 					else
 					{
@@ -216,13 +240,15 @@ namespace WebsiteProxy
 
 		class Route
 		{
-			public string name;
+			public string route;
+			public bool subRoutes;
 			public string[]? methods;
 			public Action<Socket, RequestHeaders, string, Log?> action; // clientSocket, requestHeaders, path and log.
 
-			public Route(string name, string[]? methods, Action<Socket, RequestHeaders, string, Log?> action)
+			public Route(string route, bool subRoutes, string[]? methods, Action<Socket, RequestHeaders, string, Log?> action)
 			{
-				this.name = name;
+				this.route = route;
+				this.subRoutes = subRoutes;
 				this.methods = methods;
 				this.action = action;
 			}
@@ -279,13 +305,17 @@ namespace WebsiteProxy
 			// Checks if the route matches a pre-defined route.
 			foreach (Route routeAlternative in routes)
 			{
-				string baseRoute = routeAlternative.name.TrimStart('/');
+				string baseRoute = routeAlternative.route.TrimStart('/');
 				if (route.ToLower().StartsWith(baseRoute.ToLower()))
 				{
 					string subRoute = route.Remove(0, baseRoute.Length).TrimStart('/');
-					if (!requestHeaders.url.StartsWith(routeAlternative.name))
+					if (subRoute.Length > 0 && !routeAlternative.subRoutes)
 					{
-						clientSocket.SendRedirectResponse(308, routeAlternative.name + subRoute, log: log);
+						continue;
+					}
+					if (!requestHeaders.url.StartsWith(routeAlternative.route))
+					{
+						clientSocket.SendRedirectResponse(308, routeAlternative.route + subRoute, log: log);
 						return;
 					}
 					if (routeAlternative.methods == null) // Means that the route doesn't care about which method is used.
@@ -302,7 +332,7 @@ namespace WebsiteProxy
 								return;
 							}
 						}
-						clientSocket.SendError(405, "The route \"" + routeAlternative.name + "\" only accepts " + Util.GrammaticalListing(routeAlternative.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", routeAlternative.methods) } }, log: log);
+						clientSocket.SendError(405, "The route \"" + routeAlternative.route + "\" only accepts " + Util.GrammaticalListing(routeAlternative.methods) + " requests.", new Dictionary<string, object>() { { "Allow", string.Join(", ", routeAlternative.methods) } }, log: log);
 					}
 					return;
 				}

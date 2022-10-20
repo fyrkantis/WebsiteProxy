@@ -1,6 +1,5 @@
 ﻿using System.Net.Sockets;
 using System.Text;
-using System.Web;
 
 namespace WebsiteProxy
 {
@@ -158,14 +157,6 @@ namespace WebsiteProxy
 				parameters = new Dictionary<string, object>();
 			}
 			parameters.Add("navbarButtons", Util.navbarButtons);
-
-			List<string> users = new List<string>();
-			foreach (User user in Util.users.FindAll())
-			{
-				users.Add(HttpUtility.HtmlEncode(user.name));
-			}
-			users.Reverse();
-			parameters.Add("guests", users);
 			socket.SendBodyResponse(TemplateLoader.Render(path, parameters, log), responseHeaders, log);
 		}
 
@@ -228,9 +219,14 @@ namespace WebsiteProxy
 				socket.Send(responseHeaders.GetBytes());
 			}, log);
 		}
-		public static void SendRedirectResponse(this Socket socket, int code, string route, Log? log = null)
+		public static void SendRedirectResponse(this Socket socket, int code, string route, Dictionary<string, object>? headerFields = null, Log? log = null)
 		{
-			socket.SendResponse(code, new Dictionary<string, object>() { { "Location", route } }, log);
+			SendRedirectResponse(socket, route, new ResponseHeaders(code, headerFields), log);
+		}
+		public static void SendRedirectResponse(this Socket socket, string route, ResponseHeaders responseHeaders, Log? log = null)
+		{
+			responseHeaders.Add("Location", route);
+			socket.SendResponse(responseHeaders, log);
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Net.Security;
+﻿using Amazon.CDK.AWS.IAM;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -56,7 +57,6 @@ namespace WebsiteProxy
 				}
 				bytesList.AddRange(bytesBuffer);
 				string buffer = Encoding.ASCII.GetString(bytesBuffer);
-				//MyConsole.Write(buffer);
 				if (bufferLength <= 0 || buffer[0] == '\n')
 				{
 					return bytesList.ToArray();
@@ -180,6 +180,11 @@ namespace WebsiteProxy
 			}
 		}
 
+		public void SetUser(User user)
+		{
+			headers["Set-Cookie"] = "Id=" + user.id + "; Path=/";
+		}
+
 		public string GetString()
 		{
 			string str = protocol + " " + code + " " + message;
@@ -210,6 +215,7 @@ namespace WebsiteProxy
 		public string? method;
 		public string? url;
 		public byte[]? raw;
+		public Dictionary<string, string> cookie = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
 		public static RequestHeaders? ReadFromSocket(Socket socket, Log? log = null)
 		{
@@ -256,6 +262,7 @@ namespace WebsiteProxy
 				{
 					break;
 				}
+				//Console.Write(header, LogColor.Hidden);
 
 				string[] headerParts = header.Split(':', 2);
 				if (headerParts.Length >= 1 && !string.IsNullOrWhiteSpace(headerParts[0]))
@@ -291,6 +298,22 @@ namespace WebsiteProxy
 
 				socket.SendError(400, "Missing vital header fields.", log: log);
 				return null;
+			}
+			if (requestHeaders.headers.ContainsKey("Cookie"))
+			{
+				string? rawCookie = requestHeaders.headers["Cookie"].ToString();
+				if (rawCookie != null)
+				{
+					foreach (string cookie in rawCookie.Split(';'))
+					{
+						Console.WriteLine(cookie);
+						string[] cookieParts = cookie.Split('=', 2);
+						if (cookieParts.Length >= 2)
+						{
+							requestHeaders.cookie.Add(cookieParts[0].Trim(), cookieParts[1].Trim());
+						}
+					}
+				}
 			}
 			requestHeaders.raw = bytesList.ToArray();
 			return requestHeaders;
