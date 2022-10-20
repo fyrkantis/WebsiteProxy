@@ -180,11 +180,6 @@ namespace WebsiteProxy
 			}
 		}
 
-		public void SetUser(User user)
-		{
-			headers["Set-Cookie"] = "Id=" + user.id + "; Path=/";
-		}
-
 		public string GetString()
 		{
 			string str = protocol + " " + code + " " + message;
@@ -306,7 +301,6 @@ namespace WebsiteProxy
 				{
 					foreach (string cookie in rawCookie.Split(';'))
 					{
-						Console.WriteLine(cookie);
 						string[] cookieParts = cookie.Split('=', 2);
 						if (cookieParts.Length >= 2)
 						{

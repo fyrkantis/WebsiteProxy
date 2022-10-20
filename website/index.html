@@ -18,27 +18,27 @@
 				</figure>
 			</aside>
 			<p>It's great!</p>
-			<form action="/guest/" method="POST">
-				<fieldset>
-					<legend>Guest Book</legend>
+			<fieldset>
+				<legend>Guest Book</legend>
+				<form action="/guest/" method="POST">
 					<label for="name">Sign your name</label>
 					<br>
 					<input name="name" type="text" placeholder="Name" required>
 					<input type="submit" value="Sign">
-					<table>
-						<tr>
-							<th>Previous Guests</th>
-						</tr>
-						{{if guests && guests.size > 0}}{{for guest in guests}}
-						<tr>
-							<td>{{guest.name}} {{if guest.isUser}} <b>(You)</b>{{end}}</td>
-						</tr>{{end}}{{else}}<tr>
-							<td><i>None</i></td>
-						</tr>
-						{{end}}
-					</table>
-				</fieldset>
-			</form>
+				</form>
+				<table>
+					<tr>
+						<th>Previous Guests</th>
+					</tr>
+					{{if guests && guests.size > 0}}{{for guest in guests}}
+					<tr>
+						<td>{{guest.name}}{{if guest.isUser}} <form action="/guest/" method="POST"><input type="submit" value="X"></form>{{end}}</td>
+					</tr>{{end}}{{else}}<tr>
+						<td><i>None</i></td>
+					</tr>
+					{{end}}
+				</table>
+			</fieldset>
 		</article>
 	</main>
 </body>

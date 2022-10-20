@@ -18,7 +18,7 @@ namespace WebsiteProxy
 				}
 				Dictionary<string, object> parameters = new Dictionary<string, object>();
 				List<Dictionary<string, object>> users = new List<Dictionary<string, object>>();
-				foreach (User user in Util.users.FindAll())
+				foreach (User user in Util.users.Query().OrderBy(x => x.dateAdded).ToList())
 				{
 					users.Add(new Dictionary<string, object>()
 					{
@@ -215,25 +215,62 @@ namespace WebsiteProxy
 				{
 					log.AddRow(data, LogColor.Data);
 				}
+				User? user = null;
+				if (requestHeaders.cookie.TryGetValue("Id", out string? userId))
+				{
+					List<User> foundUsers = Util.users.Query().Where(userId).Limit(1).ToList();
+					if (foundUsers.Count > 0)
+					{
+						user = foundUsers[0];
+					}
+					else
+					{
+
+					}
+				}
+				string? name = null;
 				if (data != null)
 				{
 					if (data.StartsWith("name=")) // TODO: Replace temp data enterpreter.
 					{
-						User user = new User(WebUtility.UrlDecode(data.Substring(5)));
-						Util.users.Insert(user);
-						ResponseHeaders responseHeaders = new ResponseHeaders(303);
-						responseHeaders.SetUser(user);
-						clientSocket.SendRedirectResponse("/", responseHeaders, log: log);
+						name = WebUtility.UrlDecode(data.Substring(5));
 					}
 					else
 					{
 						clientSocket.SendError(400, "Data was malformed.", log: log);
+						return;
+					}
+				}
+				ResponseHeaders responseHeaders = new ResponseHeaders(303);
+				if (name != null)
+				{
+					if (user != null) // Update user.
+					{
+						user.name = name;
+						user.dateUpdated = DateTime.UtcNow;
+						Util.users.Update(user.id, user);
+					}
+					else // Create a user.
+					{
+						user = new User(name);
+						Util.users.Insert(user);
+						responseHeaders.headers["Set-Cookie"] = "Id=" + user.id + "; Path=/";
 					}
 				}
 				else
 				{
-					clientSocket.SendError(422, "No data was received.", log: log);
+					if (user != null) // Delete a user.
+					{
+						Util.users.Delete(user.id);
+						responseHeaders.headers["Set-Cookie"] = "Id=; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+					}
+					else // Idk what you want me to do.
+					{
+						clientSocket.SendError(422, "No data was received.", log: log);
+						return;
+					}
 				}
+				clientSocket.SendRedirectResponse("/", responseHeaders, log: log);
 			})
 
 		};
