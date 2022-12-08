@@ -227,6 +227,5 @@ namespace WebsiteProxy
 		{
 			responseHeaders.Add("Location", route);
 			socket.SendResponse(responseHeaders, log);
-		}
-	}
+		}	}
 }

@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Web;
 
 namespace WebsiteProxy
@@ -122,6 +123,32 @@ namespace WebsiteProxy
 					clientSocket.SendError(500, exception.Message, log: log);
 				}
 			}),
+			/*new Route("/gpt/", true, null, (clientSocket, requestHeaders, route, log) => // Old address.
+			{
+				if (requestHeaders.raw == null)
+				{
+					clientSocket.SendError(422);
+					return;
+				}
+				string? post = clientSocket.ReadPost(requestHeaders);
+				IPAddress address = Dns.GetHostAddresses("localhost").Where(ip => ip.AddressFamily == AddressFamily.InterNetwork).First();
+				Socket internalSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+				internalSocket.Connect(new IPEndPoint(address, 5000));
+				internalSocket.Send(requestHeaders.raw);
+				if (post != null)
+				{
+					internalSocket.Send(Encoding.UTF8.GetBytes(post));
+				}
+				byte[]? bytes = internalSocket.ReceiveBytes(internalSocket.);
+				internalSocket.Close();
+				if (bytes == null)
+				{
+					clientSocket.SendError(504);
+					return;
+				}
+				clientSocket.Send(bytes);
+				clientSocket.Close();
+			}),*/
 			new Route("/repositories/", true, null, (clientSocket, requestHeaders, route, log) => // Old address.
 			{
 				clientSocket.SendRedirectResponse(308, "/projects/" + route, log: log);
